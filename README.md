@@ -56,6 +56,8 @@ The scene is based on photos and measurements of my real room. Units are **metre
 
 Measurements of the bookshelf wall are real; room size and the rest are paced or estimated from photos. The door corridor behind the pillar is not modelled. Books on the shelves are stylized blocks with no real titles.
 
+Reference photos of the room are kept locally in `reference/` (ignored by Git, not published).
+
 **Palette:** walnut wood, warm white walls, light beige floor tiles, grey curtains, gold and black accents.
 
 ## Computer Graphics techniques
