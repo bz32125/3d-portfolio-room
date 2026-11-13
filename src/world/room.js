@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ROOM, BOUNDS } from '../config.js';
+import { ROOM, BOUNDS, CORRIDOR } from '../config.js';
 
 // Guaska e dhomës: dyshemeja, tavani dhe 4 muret.
 // Çdo pjesë është një PlaneGeometry (sipërfaqe e sheshtë, pa trashësi).
@@ -28,16 +28,34 @@ export function createRoom() {
   room.add(ceiling);
 
   // Muret. Çdo mur vendoset në kufirin e vet dhe rrotullohet nga brenda dhomës.
+  // Muri i majtë ka hapjen e korridorit pranë rafteve (z -3.5 … -2.2), ndaj
+  // ndahet në dy pjesë: muri i plotë pas hapjes dhe një "tra" mbi hapje.
   const halfH = ROOM.height / 2;
+  const leftLen = BOUNDS.front - CORRIDOR.maxZ; // 5.7 m
+  const openW = CORRIDOR.maxZ - CORRIDOR.minZ; // 1.3 m
+  const headerH = ROOM.height - CORRIDOR.height; // 0.55 m
   const walls = [
-    { name: 'wall-back', w: ROOM.width, pos: [0, halfH, BOUNDS.back], rotY: 0 },
-    { name: 'wall-front', w: ROOM.width, pos: [0, halfH, BOUNDS.front], rotY: Math.PI },
-    { name: 'wall-left', w: ROOM.depth, pos: [BOUNDS.left, halfH, 0], rotY: Math.PI / 2 },
-    { name: 'wall-right', w: ROOM.depth, pos: [BOUNDS.right, halfH, 0], rotY: -Math.PI / 2 },
+    { name: 'wall-back', w: ROOM.width, h: ROOM.height, pos: [0, halfH, BOUNDS.back], rotY: 0 },
+    { name: 'wall-front', w: ROOM.width, h: ROOM.height, pos: [0, halfH, BOUNDS.front], rotY: Math.PI },
+    {
+      name: 'wall-left',
+      w: leftLen,
+      h: ROOM.height,
+      pos: [BOUNDS.left, halfH, CORRIDOR.maxZ + leftLen / 2],
+      rotY: Math.PI / 2,
+    },
+    {
+      name: 'wall-left-header',
+      w: openW,
+      h: headerH,
+      pos: [BOUNDS.left, CORRIDOR.height + headerH / 2, CORRIDOR.minZ + openW / 2],
+      rotY: Math.PI / 2,
+    },
+    { name: 'wall-right', w: ROOM.depth, h: ROOM.height, pos: [BOUNDS.right, halfH, 0], rotY: -Math.PI / 2 },
   ];
 
   for (const wall of walls) {
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(wall.w, ROOM.height), wallMat);
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(wall.w, wall.h), wallMat);
     mesh.position.set(...wall.pos);
     mesh.rotation.y = wall.rotY;
     mesh.receiveShadow = true;

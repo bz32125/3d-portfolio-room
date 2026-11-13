@@ -1,17 +1,23 @@
 import * as THREE from 'three';
-import { BOUNDS } from '../config.js';
+import { NAV_AREAS } from '../config.js';
 
 // Navigimi: dyshemeja ndahet në një rrjetë qelizash 10 × 10 cm.
-// Qelizat ku ka mobilje (të zgjeruara me rrezen e karakterit) janë të bllokuara.
-// Rruga gjendet me A* dhe pastaj thjeshtohet në vija të drejta.
+// Rrjeta mbulon dhomën dhe korridorin (NAV_AREAS). Një qelizë është e lirë
+// vetëm nëse karakteri (rrethi me rreze `radius`) futet plotësisht në një zonë
+// dhe nuk prek asnjë mobilje. Rruga gjendet me A* dhe thjeshtohet në vija të drejta.
 
 const CELL = 0.1;
-const COLS = Math.round((BOUNDS.right - BOUNDS.left) / CELL); // 50
-const ROWS = Math.round((BOUNDS.front - BOUNDS.back) / CELL); // 70
+// Drejtkëndëshi që përmban të gjitha zonat
+const MIN_X = Math.min(...NAV_AREAS.map((a) => a.minX)); // -5.0
+const MAX_X = Math.max(...NAV_AREAS.map((a) => a.maxX)); // +2.5
+const MIN_Z = Math.min(...NAV_AREAS.map((a) => a.minZ)); // -3.5
+const MAX_Z = Math.max(...NAV_AREAS.map((a) => a.maxZ)); // +3.5
+const COLS = Math.round((MAX_X - MIN_X) / CELL); // 75
+const ROWS = Math.round((MAX_Z - MIN_Z) / CELL); // 70
 
-const toCol = (x) => Math.floor((x - BOUNDS.left) / CELL);
-const toRow = (z) => Math.floor((z - BOUNDS.back) / CELL);
-const cellCenter = (c, r) => new THREE.Vector3(BOUNDS.left + (c + 0.5) * CELL, 0, BOUNDS.back + (r + 0.5) * CELL);
+const toCol = (x) => Math.floor((x - MIN_X) / CELL);
+const toRow = (z) => Math.floor((z - MIN_Z) / CELL);
+const cellCenter = (c, r) => new THREE.Vector3(MIN_X + (c + 0.5) * CELL, 0, MIN_Z + (r + 0.5) * CELL);
 
 export class NavGrid {
   /**
@@ -22,18 +28,13 @@ export class NavGrid {
     this.blocked = new Uint8Array(COLS * ROWS);
     const box = new THREE.Box3();
 
-    // Muret: një brez rreth skajeve
+    // Muret: qeliza është e lirë vetëm brenda një zone, larg mureve sa rrezja
+    const inside = (p, a) =>
+      p.x > a.minX + radius && p.x < a.maxX - radius && p.z > a.minZ + radius && p.z < a.maxZ - radius;
     for (let c = 0; c < COLS; c++) {
       for (let r = 0; r < ROWS; r++) {
         const p = cellCenter(c, r);
-        if (
-          p.x < BOUNDS.left + radius ||
-          p.x > BOUNDS.right - radius ||
-          p.z < BOUNDS.back + radius ||
-          p.z > BOUNDS.front - radius
-        ) {
-          this.blocked[r * COLS + c] = 1;
-        }
+        if (!NAV_AREAS.some((a) => inside(p, a))) this.blocked[r * COLS + c] = 1;
       }
     }
 

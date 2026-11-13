@@ -4,8 +4,9 @@ import { MATERIALS } from '../materials/materials.js';
 import { box } from '../utils/box.js';
 
 // Dritarja në murin e djathtë (x = +2.5) dhe perdet.
-// Dritarja: rreth 3.0 × 2.3 m, qendra në z ≈ -1.0 (vlerësim nga fotot).
-export const WINDOW = { centerZ: -1.0, width: 3.0, height: 2.3, bottom: 0.25 };
+// Dritarja: rreth 4.0 × 2.0 m, qendra në z ≈ -0.6 (fotot 03, 08, 11).
+// Poshtë saj, nga ana e shtratit, është radiatori.
+export const WINDOW = { centerZ: -0.6, width: 4.0, height: 2.0, bottom: 0.55 };
 
 /**
  * Një perde me rrudha: një PlaneGeometry me shumë ndarje horizontale,
@@ -43,7 +44,7 @@ export function createWindowWall() {
   const f = 0.06;
   g.add(box(0.05, f, width + f, MATERIALS.windowFrame, x - 0.03, bottom, centerZ));
   g.add(box(0.05, f, width + f, MATERIALS.windowFrame, x - 0.03, bottom + height, centerZ));
-  for (const dz of [-width / 2, 0, width / 2]) {
+  for (const dz of [-width / 2, -width / 4, 0, width / 4, width / 2]) {
     g.add(box(0.05, height, f, MATERIALS.windowFrame, x - 0.03, cy, centerZ + dz));
   }
 
@@ -55,10 +56,20 @@ export function createWindowWall() {
     g.add(mesh);
   };
   // Perdja e bardhë (sheer) mbulon gjysmën e dritares
-  place(createCurtain(1.6, curtainH, MATERIALS.curtainSheer, 9), centerZ + 0.5, 0.12);
+  place(createCurtain(2.4, curtainH, MATERIALS.curtainSheer, 13), centerZ + 0.6, 0.12);
   // Perdet gri, të mbledhura në të dy anët e dritares
   place(createCurtain(0.9, curtainH, MATERIALS.curtainGrey, 6), centerZ - width / 2 - 0.2, 0.2);
   place(createCurtain(0.9, curtainH, MATERIALS.curtainGrey, 6), centerZ + width / 2 + 0.2, 0.2);
+
+  // Radiatori i bardhë poshtë dritares, nga ana e shtratit (foto 11–12)
+  const radiator = new THREE.Group();
+  radiator.name = 'radiator';
+  const rz = centerZ + width / 2 - 0.9;
+  radiator.add(box(0.1, 0.45, 1.2, MATERIALS.radiator, x - 0.3, 0.33, rz));
+  for (let i = 0; i < 12; i++) {
+    radiator.add(box(0.005, 0.4, 0.02, MATERIALS.windowFrame, x - 0.36, 0.33, rz - 0.55 + i * 0.1));
+  }
+  g.add(radiator);
 
   return g;
 }

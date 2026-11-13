@@ -17,7 +17,7 @@ export function createCamera() {
   fitFov(camera);
   camera.updateProjectionMatrix();
 
-  // Pozicioni fillestar: afër murit të përparmë, në lartësinë e syve (1.6 m).
+  // Pozicioni fillestar (main.js e ndryshon: loja nis nga korridori).
   camera.position.set(0, 1.6, 3.0);
 
   return camera;
