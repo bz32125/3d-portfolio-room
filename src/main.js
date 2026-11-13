@@ -13,6 +13,9 @@ import { createChair } from './world/chair.js';
 import { createLounge } from './world/lounge.js';
 import { createWindowWall } from './world/windowWall.js';
 import { createWardrobe } from './world/wardrobe.js';
+import { createCorridor } from './world/corridor.js';
+import { createBed, createNightstands, createPaintings } from './world/bedroom.js';
+import { CameraTween, V } from './core/cameraTween.js';
 import { Character } from './character/character.js';
 import { NavGrid } from './character/navigation.js';
 import { SPOTS } from './character/spots.js';
@@ -35,7 +38,24 @@ const chair = createChair();
 const lounge = createLounge();
 const windowWall = createWindowWall();
 const wardrobe = createWardrobe();
-scene.add(room, createSoffit(), bookshelves, desk, chair, lounge, windowWall, wardrobe, createLights());
+const corridor = createCorridor();
+const bed = createBed();
+const nightstands = createNightstands();
+scene.add(
+  room,
+  corridor,
+  createSoffit(),
+  bookshelves,
+  desk,
+  chair,
+  lounge,
+  windowWall,
+  wardrobe,
+  bed,
+  nightstands,
+  createPaintings(),
+  createLights(),
+);
 
 // 3. Karakteri dhe navigimi.
 // Pengesat: çdo mobilje që zë vend në dysheme (qilimat jo, mbi to ecet).
@@ -45,14 +65,19 @@ const obstacles = [
   chair,
   wardrobe,
   windowWall,
+  bed,
+  nightstands,
+  corridor.getObjectByName('dresser'),
   lounge.getObjectByName('coffee-table'),
   lounge.getObjectByName('armchair'),
 ];
 scene.updateMatrixWorld(true); // Box3 ka nevojë për pozicionet përfundimtare
 const nav = new NavGrid(obstacles);
 
+// Loja nis te dera e korridorit (foto 01): karakteri shikon drejt dhomës (+X).
 const character = new Character();
-character.root.position.set(-0.7, 0, -1.5); // mes qilimit dhe tavolinës
+character.root.position.set(-3.8, 0, -2.75);
+character.root.rotation.y = Math.PI / 2;
 scene.add(character.root);
 
 // HUD: udhëzimet në ekran dhe gjendja e karakterit
@@ -71,8 +96,8 @@ function goTo(point, onArrive) {
 new Picker({
   camera,
   canvas,
-  floor: room.getObjectByName('floor'),
-  interactive: [chair, lounge.getObjectByName('armchair'), bookshelves.getObjectByName('portfolio-book')],
+  floors: [room.getObjectByName('floor'), corridor.getObjectByName('floor-corridor')],
+  interactive: [chair, lounge.getObjectByName('armchair'), bed, bookshelves.getObjectByName('portfolio-book')],
   onFloorClick: (point) => goTo(point, () => setStatus('Idle')),
   onObjectClick: (name) => {
     const spot = SPOTS[name];
@@ -83,6 +108,21 @@ new Picker({
   },
 });
 
+// 5. Hyrja: kamera nis në korridor, prapa karakterit (si foto 01).
+// Karakteri ecën brenda në dhomë dhe kamera e ndjek me një lëvizje të butë.
+const ROOM_VIEW = { pos: V(-1.5, 2.4, 2.85), target: V(0.4, 0.6, -1.0) };
+camera.position.set(-4.95, 2.4, -2.35);
+controls.target.set(-1.5, 0.5, -2.7);
+const cameraTween = new CameraTween(camera, controls);
+const intro = !new URLSearchParams(window.location.search).has('cam');
+if (intro) {
+  setStatus('Welcome in');
+  setTimeout(() => {
+    goTo(V(-1.0, 0, -1.4), () => setStatus('Idle'));
+    cameraTween.to(ROOM_VIEW.pos, ROOM_VIEW.target, 3.5);
+  }, 600);
+}
+
 // Vetëm për zhvillim: ?cam=x,y,z&target=x,y,z në URL vendos kamerën,
 // p.sh. /?cam=-2,1.7,3&target=1.5,1,-1 për të parë dritaren.
 const params = new URLSearchParams(window.location.search);
@@ -90,10 +130,10 @@ if (params.has('cam')) camera.position.set(...params.get('cam').split(',').map(N
 if (params.has('target')) controls.target.set(...params.get('target').split(',').map(Number));
 controls.update();
 
-// 5. Responsive
+// 6. Responsive
 handleResize(camera, renderer);
 
-// 6. Render loop.
+// 7. Render loop.
 // Delta-kohë: sa sekonda kaluan nga kuadri i kaluar. Lëvizja = shpejtësi × dt,
 // kështu që karakteri ecën njësoj në 60 Hz dhe në 144 Hz.
 // Kufizimi në 0.05 s: kur skeda rikthehet në fokus pas shumë sekondash,
@@ -102,6 +142,7 @@ const clock = new THREE.Clock();
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05);
   character.update(dt);
+  cameraTween.update(dt);
   controls.update(); // e nevojshme për damping
   renderer.render(scene, camera);
   requestAnimationFrame(tick);

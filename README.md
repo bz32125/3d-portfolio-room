@@ -37,7 +37,7 @@ Core features must be delivered; stretch features are dropped first if time runs
 
 The scene is based on photos and measurements of my real room. Units are **metres** (1 three.js unit = 1 m).
 
-**Coordinate system:** origin at the centre of the floor, Y up. The bookshelf wall is the back wall at `z = -3.5`, the window wall is on the right at `x = +2.5`, the wardrobe is on the left at `x = -2.5`, and the camera starts near `z = +3.5`.
+**Coordinate system:** origin at the centre of the floor, Y up. The bookshelf wall is the back wall at `z = -3.5`, the window wall is on the right at `x = +2.5`, the wardrobe and the corridor opening are on the left at `x = -2.5`, and the bed stands against the front wall at `z = +3.5`.
 
 | Object | Size w × h × d (m) | Centre x, y, z (m) |
 | --- | --- | --- |
@@ -51,10 +51,13 @@ The scene is based on photos and measurements of my real room. Units are **metre
 | Marble-pattern rug | 2.4 × 0.01 × 1.7 | 0, 0.005, -0.8 |
 | White coffee table | 1.0 × 0.40 × 0.6 | 0.3, 0.2, -0.9 |
 | Armchair (wooden frame) | 0.75 × 0.80 × 0.75 | 1.6, 0.4, -0.4 |
-| Dark glass wardrobe | 0.6 × 2.2 × 1.8 | -2.2, 1.1, 0.8 |
-| Window with grey + sheer curtains | ~3.0 × 2.3 | on the right wall, centred at z ≈ -1.0 |
+| Wardrobe (black body, walnut + mirror doors) | 0.6 × 2.45 × 2.4 | -2.2, 1.225, 2.2 |
+| Window with grey + sheer curtains, radiator below | ~4.0 × 2.0 | on the right wall, centred at z ≈ -0.6 |
+| Double bed with black leather headboard, green quilt | 1.6 × 0.5 × 2.05 | 0.3, 0.25, 2.4 |
+| Two nightstands, three paintings above | 0.45 × 0.45 × 0.38 | either side of the bed |
+| Entrance corridor (door, walnut dresser, round mirror) | 2.5 × 2.6 × 1.3 | x -5.0 … -2.5, z -3.5 … -2.2 |
 
-Measurements of the bookshelf wall are real; room size and the rest are paced or estimated from photos. The door corridor behind the pillar is not modelled. Books on the shelves are stylized blocks with no real titles.
+Measurements of the bookshelf wall are real; room size and the rest are paced or estimated from photos. The game starts in the entrance corridor: the character walks in from the door and the camera eases into the room. Books on the shelves are stylized blocks with no real titles.
 
 Reference photos of the room are kept locally, outside the repository (not published).
 

@@ -35,3 +35,22 @@ export const BOUNDS = {
   back: -ROOM.depth / 2, // z = -3.5  (muri me rafte)
   front: ROOM.depth / 2, // z = +3.5  (nga u bë fotoja e gjerë)
 };
+
+// Korridori (fotot 01, 02, 13): vazhdon nga muri i majtë, pranë rafteve,
+// drejt -X. Dera e hyrjes është në fund të tij; loja nis këtu.
+// Matjet janë vlerësime nga fotot.
+export const CORRIDOR = {
+  minX: BOUNDS.left - 2.5, // x = -5.0 (dera)
+  maxX: BOUNDS.left, // x = -2.5 (hapja në murin e dhomës)
+  minZ: BOUNDS.back, // z = -3.5 (vazhdim i murit me rafte)
+  maxZ: -2.2, // gjerësia 1.3 m
+  height: 2.6, // tavan më i ulët se dhoma
+};
+
+// Zonat ku karakteri mund të ecë: dhoma dhe korridori.
+// Korridori zgjatet 0.5 m brenda dhomës, që zonat të mbivendosen te hapja;
+// përndryshe brezi i mureve (rrezja e karakterit) do ta mbyllte kalimin.
+export const NAV_AREAS = [
+  { minX: BOUNDS.left, maxX: BOUNDS.right, minZ: BOUNDS.back, maxZ: BOUNDS.front },
+  { minX: CORRIDOR.minX, maxX: CORRIDOR.maxX + 0.5, minZ: CORRIDOR.minZ, maxZ: CORRIDOR.maxZ },
+];

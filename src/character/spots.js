@@ -27,4 +27,13 @@ export const SPOTS = {
     state: 'atShelf',
     label: 'Opening the portfolio book',
   },
+  bed: {
+    // Nga ana e majtë e shtratit (mes shtratit dhe gardërobës)
+    approach: new THREE.Vector3(-0.85, 0, 2.0),
+    // Qendra e trupit mbi dyshek; koka drejt kokës së shtratit (+Z botërore)
+    position: new THREE.Vector3(0.3, 0.42, 2.45),
+    rotationY: Math.PI, // -Z lokale → +Z botërore
+    state: 'sleeping',
+    label: 'Sleeping',
+  },
 };

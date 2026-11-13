@@ -53,6 +53,18 @@ export const MATERIALS = {
   windowFrame: new THREE.MeshStandardMaterial({ color: 0xeeeeea, roughness: 0.6 }),
   // Gardëroba me xham të errët
   darkGlass: new THREE.MeshStandardMaterial({ color: 0x15171a, roughness: 0.08, metalness: 0.3 }),
+  // Pasqyra e gardërobës (pa env map duket e errët; Faza 6 i jep reflektim)
+  mirror: new THREE.MeshStandardMaterial({ color: 0xa9b1b8, roughness: 0.15, metalness: 0.5 }),
+  // Pjesa e gjumit: shtrati, mbulesa jeshile, radiatori, dera
+  quiltGreen: new THREE.MeshStandardMaterial({ color: 0x55603f, roughness: 0.95 }),
+  sheetWhite: new THREE.MeshStandardMaterial({ color: 0xece8e0, roughness: 0.9 }),
+  leatherBlack: new THREE.MeshStandardMaterial({ color: 0x1c1c1e, roughness: 0.55 }),
+  radiator: new THREE.MeshStandardMaterial({ color: 0xf2f2ef, roughness: 0.4, metalness: 0.2 }),
+  door: new THREE.MeshStandardMaterial({ color: 0xe9e4da, roughness: 0.5 }),
+  // Tre pikturat mbi shtrat (ngjyrat kryesore nga fotot 11–12)
+  paintingOrange: new THREE.MeshStandardMaterial({ color: 0xd8823e, roughness: 0.8 }),
+  paintingDark: new THREE.MeshStandardMaterial({ color: 0x3b2a33, roughness: 0.8 }),
+  paintingPink: new THREE.MeshStandardMaterial({ color: 0xc4566a, roughness: 0.8 }),
   // Doreza e sirtarëve
   handle: new THREE.MeshStandardMaterial({ color: 0x2a2018, roughness: 0.4, metalness: 0.6 }),
 };

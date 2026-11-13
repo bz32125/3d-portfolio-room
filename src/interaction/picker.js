@@ -10,13 +10,13 @@ const HIGHLIGHT = new THREE.Color(0xffc56b);
 export class Picker {
   /**
    * @param {object} opts
-   *  camera, canvas, floor (mesh-i i dyshemesë), interactive (objektet me userData.interactive)
+   *  camera, canvas, floors (mesh-et e dyshemesë: dhoma + korridori), interactive (objektet me userData.interactive)
    *  onFloorClick(point), onObjectClick(name)
    */
-  constructor({ camera, canvas, floor, interactive, onFloorClick, onObjectClick }) {
+  constructor({ camera, canvas, floors, interactive, onFloorClick, onObjectClick }) {
     this.camera = camera;
     this.canvas = canvas;
-    this.floor = floor;
+    this.floors = floors;
     this.interactive = interactive;
     this.onFloorClick = onFloorClick;
     this.onObjectClick = onObjectClick;
@@ -63,7 +63,7 @@ export class Picker {
     this.setFromEvent(e);
     const target = this.pickInteractive();
     if (target) return this.onObjectClick(target.userData.interactive);
-    const floorHit = this.raycaster.intersectObject(this.floor)[0];
+    const floorHit = this.raycaster.intersectObjects(this.floors, false)[0];
     if (floorHit) this.onFloorClick(floorHit.point);
   }
 }

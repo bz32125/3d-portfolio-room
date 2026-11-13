@@ -17,11 +17,13 @@ export class Character {
     this.body = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 1.25, 6, 16), material);
     this.body.position.y = 0.825;
     this.body.castShadow = true;
+    // Hunda është fëmijë i trupit: kur trupi shtrihet, hunda shkon me të.
     const nose = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.12), material);
-    nose.position.set(0, 1.45, 0.2); // përpara = +Z lokale
-    this.root.add(this.body, nose);
+    nose.position.set(0, 0.625, 0.2); // përpara = +Z lokale, afër kokës
+    this.body.add(nose);
+    this.root.add(this.body);
 
-    this.state = 'idle'; // idle | walking | sitting | reading | atShelf
+    this.state = 'idle'; // idle | walking | sitting | reading | atShelf | sleeping
     this.path = [];
     this.onArrive = null; // çfarë ndodh kur mbërrin (p.sh. ulet)
     this.spot = null; // vendi ku ndodhet tani (karrige, kolltuk...), ose null
@@ -43,11 +45,19 @@ export class Character {
     this.state = state;
     // Placeholder: "ulja" tregohet duke e shkurtuar kapsulën
     if (state === 'sitting' || state === 'reading') this.body.scale.y = 0.65;
+    // Placeholder: "gjumi" = kapsula shtrihet (-90° rreth X), koka drejt -Z lokale,
+    // mbi dyshek (lartësia e spot-it jep sa lart).
+    if (state === 'sleeping') {
+      this.body.rotation.x = -Math.PI / 2;
+      this.body.position.y = 0.2;
+    }
   }
 
   /** Ngrihet: kthehet te pika ku kishte ardhur (approach), në këmbë. */
   standUp() {
     this.body.scale.y = 1;
+    this.body.rotation.x = 0;
+    this.body.position.y = 0.825;
     if (this.spot) this.root.position.copy(this.spot.approach);
     this.spot = null;
     this.state = 'idle';
