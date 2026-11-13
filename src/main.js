@@ -6,6 +6,9 @@ import { createCamera, createControls } from './core/camera.js';
 import { handleResize } from './core/resize.js';
 import { createRoom } from './world/room.js';
 import { createLights } from './world/lights.js';
+import { createSoffit } from './world/soffit.js';
+import { createBookshelves } from './world/bookshelf.js';
+import { createDesk } from './world/desk.js';
 
 // 1. Canvas, renderer, skena, kamera
 const canvas = document.querySelector('#scene');
@@ -18,6 +21,9 @@ const controls = createControls(camera, canvas);
 
 // 2. Bota: dhoma dhe dritat
 scene.add(createRoom());
+scene.add(createSoffit());
+scene.add(createBookshelves());
+scene.add(createDesk());
 scene.add(createLights());
 
 // Ndihmës vetëm për zhvillim: boshtet X (e kuqe), Y (jeshile), Z (blu)
