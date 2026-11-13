@@ -31,6 +31,28 @@ export const MATERIALS = {
     roughness: 0.3,
   }),
   aluminium: new THREE.MeshStandardMaterial({ color: 0xb8bcc2, roughness: 0.35, metalness: 0.8 }),
+  // Mobiljet e ndenjes
+  fabric: new THREE.MeshStandardMaterial({ color: 0xd8d3ca, roughness: 0.95 }),
+  whiteTop: new THREE.MeshStandardMaterial({ color: 0xf4f2ee, roughness: 0.35 }),
+  gold: new THREE.MeshStandardMaterial({ color: 0xb8954a, roughness: 0.35, metalness: 0.9 }),
+  chrome: new THREE.MeshStandardMaterial({ color: 0xd6d8dc, roughness: 0.2, metalness: 1 }),
+  meshBlack: new THREE.MeshStandardMaterial({ color: 0x141416, roughness: 0.9 }),
+  rugGreen: new THREE.MeshStandardMaterial({ color: 0x2f3a2a, roughness: 1 }),
+  rugMarble: new THREE.MeshStandardMaterial({ color: 0xd9d3c9, roughness: 1 }),
+  // Perdet: DoubleSide, sepse shihen nga të dyja anët
+  curtainGrey: new THREE.MeshStandardMaterial({ color: 0x86837c, roughness: 1, side: THREE.DoubleSide }),
+  curtainSheer: new THREE.MeshStandardMaterial({
+    color: 0xf3f1ec,
+    roughness: 1,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.75,
+  }),
+  // Qielli prapa dritares (përkohësisht emissive; Faza 5 e kthen në shader)
+  sky: new THREE.MeshBasicMaterial({ color: 0xcfe3f5 }),
+  windowFrame: new THREE.MeshStandardMaterial({ color: 0xeeeeea, roughness: 0.6 }),
+  // Gardëroba me xham të errët
+  darkGlass: new THREE.MeshStandardMaterial({ color: 0x15171a, roughness: 0.08, metalness: 0.3 }),
   // Doreza e sirtarëve
   handle: new THREE.MeshStandardMaterial({ color: 0x2a2018, roughness: 0.4, metalness: 0.6 }),
 };
