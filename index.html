@@ -1,13 +1,23 @@
 <!doctype html>
-<html lang="sq">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Besnik · 3D Portfolio</title>
+    <title>Cozy Room · Besnik Zeqiri</title>
   </head>
   <body>
     <!-- Three.js vizaton brenda këtij canvas-i -->
     <canvas id="scene"></canvas>
+
+    <!-- HUD: udhëzimet në ekran (rubrika A4) -->
+    <div class="hud">
+      <p class="hint">
+        Click the floor to walk · click the <b>chair</b>, the <b>armchair</b> or the
+        <b>red book</b> · drag to look around
+      </p>
+      <p id="status" class="status">Idle</p>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
