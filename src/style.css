@@ -18,3 +18,30 @@ body {
   height: 100%;
   touch-action: none; /* në telefon, gishti rrotullon kamerën, jo faqen */
 }
+
+/* HUD: mbi canvas, nuk i pengon klikimet në skenë (pointer-events: none) */
+.hud {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  align-items: flex-end;
+  pointer-events: none;
+  font: 14px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: #f4efe6;
+}
+
+.hud p {
+  background: rgba(26, 23, 20, 0.72);
+  padding: 8px 12px;
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+}
+
+.status {
+  font-weight: 600;
+}
