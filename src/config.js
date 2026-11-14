@@ -156,3 +156,46 @@ export const ROOM_LIGHTS = {
   ledEmissive: 2.5, // shkëlqimi i shiritave LED kur janë ndezur plotësisht
   screenGlow: 4, // RectAreaLight para monitorit (nits)
 };
+
+// ---------------------------------------------------------------------------
+// Karakteri (Faza 8). Modeli: Quaternius "Universal Base Characters" +
+// "Universal Animation Library" (CC0), glTF, në public/models/character.glb.
+// Nëse skedari mungon, mbetet kapsula (shih character.js).
+// ---------------------------------------------------------------------------
+export const CHARACTER = {
+  modelUrl: 'models/character.glb',
+  height: 1.75, // m: modeli shkallëzohet në këtë lartësi (vlerësim)
+  walkSpeed: 1.3, // m/s për kapsulën, ose nëse shpejtësia e klipit s'matet dot
+  fade: 0.3, // s: kohëzgjatja e crossfade mes animacioneve
+};
+
+// Emrat e klipeve të animacionit për çdo veprim. Për secilin: lista emrash që
+// provohen me radhë (fillimisht emri i saktë, pastaj si pjesë e emrit, pa
+// dallim shkronjash të mëdha/vogla). Emrat e saktë i shkruan console-a kur
+// ngarkohet modeli: "[character] animation clips: [...]". Ndryshoji këtu.
+export const ANIMATIONS = {
+  idle: ['Idle_Loop', 'Idle'],
+  walk: ['Walk_Loop', 'Walk', 'Walking'],
+  sit: ['Sitting_Idle_Loop', 'Sitting_Idle', 'Sitting', 'Sit'],
+  sitType: ['Sitting_Typing', 'Typing', 'Sitting_Talking_Loop'],
+  read: ['Sitting_Reading', 'Reading', 'Sitting_Idle_Loop'],
+  sleep: ['Lying_Idle', 'Laying', 'Lying', 'Sleep', 'Lie'],
+  shelf: ['Interact', 'PickUp', 'Idle_Loop'], // në këmbë para raftit
+};
+
+// Rutina ditore (kur "Character follows the clock" është ndezur):
+// [ora e fillimit, veprimi]. Veprimet = çelësat e SPOTS (chair, armchair, bed)
+// ose 'wander' = ecën nëpër dhomë. Mbrëmjen e ndajmë në orë: lexon, ecën, lexon...
+export const ROUTINE = [
+  [0, 'bed'],
+  [7, 'wander'],
+  [9, 'chair'],
+  [13, 'armchair'],
+  [15, 'chair'],
+  [18, 'armchair'],
+  [19, 'wander'],
+  [20, 'armchair'],
+  [21, 'wander'],
+  [22, 'armchair'],
+  [23, 'bed'],
+];

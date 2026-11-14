@@ -18,6 +18,7 @@ import { CameraTween, V } from './core/cameraTween.js';
 import { Character } from './character/character.js';
 import { NavGrid } from './character/navigation.js';
 import { SPOTS } from './character/spots.js';
+import { Routine } from './character/routine.js';
 import { Picker } from './interaction/picker.js';
 import { DayCycle } from './lighting/dayCycle.js';
 import { createTimeControls } from './ui/timeControls.js';
@@ -99,6 +100,8 @@ const character = new Character();
 character.root.position.set(-3.8, 0, -2.75);
 character.root.rotation.y = Math.PI / 2;
 scene.add(character.root);
+// Modeli glTF ngarkohet në sfond; deri atëherë (ose nëse mungon) shihet kapsula
+character.loadModel();
 
 // HUD: udhëzimet në ekran dhe gjendja e karakterit
 const status = document.querySelector('#status');
@@ -112,19 +115,45 @@ function goTo(point, onArrive) {
   setStatus('Walking…');
 }
 
-// 4. Ndërveprimi: klik në dysheme = ec; klik në mobilje = shko dhe vepro
+/** Shko te një vend (karrige, kolltuk, shtrat, raft) dhe kryej veprimin. */
+function doAction(name) {
+  const spot = SPOTS[name];
+  if (character.spot === spot) return; // është tashmë aty
+  goTo(spot.approach, (c) => {
+    c.placeAt(spot, spot.state);
+    setStatus(spot.label);
+  });
+}
+
+/** Ec drejt një pike të rastësishme të lirë në dhomë (rutina "wander"). */
+function wander() {
+  const p = nav.nearestFree(THREE.MathUtils.randFloat(-2, 2), THREE.MathUtils.randFloat(-2.5, 1.5));
+  if (p) goTo(p, () => setStatus('Idle'));
+}
+
+// Rutina ditore: karakteri ndjek orën (butoni 🗓 në krye)
+const routine = new Routine({ day, character, doAction, wander });
+const routineBtn = document.querySelector('#routine');
+routineBtn.addEventListener('click', () => {
+  const on = !routine.enabled;
+  routine.setEnabled(on);
+  routineBtn.setAttribute('aria-pressed', String(on));
+});
+
+// 4. Ndërveprimi: klik në dysheme = ec; klik në mobilje = shko dhe vepro.
+// Çdo klik i lojtarit e ndërpret rutinën deri te blloku tjetër i orarit.
 new Picker({
   camera,
   canvas,
   floors: [room.getObjectByName('floor'), corridor.getObjectByName('floor-corridor')],
   interactive: [chair, lounge.getObjectByName('armchair'), bed, bookshelves.getObjectByName('portfolio-book')],
-  onFloorClick: (point) => goTo(point, () => setStatus('Idle')),
+  onFloorClick: (point) => {
+    routine.override();
+    goTo(point, () => setStatus('Idle'));
+  },
   onObjectClick: (name) => {
-    const spot = SPOTS[name];
-    goTo(spot.approach, (c) => {
-      c.placeAt(spot, spot.state);
-      setStatus(spot.label);
-    });
+    routine.override();
+    doAction(name);
   },
 });
 
@@ -170,6 +199,7 @@ function tick() {
   timeControls.update();
   updateCurtains(dt, day); // uTime, era dhe dielli për shader-in e perdeve
   day.shafts.faceCamera(camera); // rrezet e diellit kthehen drejt kamerës
+  routine.update(dt);
   character.update(dt);
   cameraTween.update(dt);
   controls.update(); // e nevojshme për damping
@@ -179,4 +209,4 @@ function tick() {
 tick();
 
 // Vetëm në `npm run dev`: qasje nga console e browser-it për debug.
-if (import.meta.env.DEV) window.__app = { scene, camera, controls, character, nav, day, renderer };
+if (import.meta.env.DEV) window.__app = { scene, camera, controls, character, nav, day, renderer, routine };
