@@ -48,15 +48,7 @@ export const MATERIALS = {
   meshBlack: new THREE.MeshStandardMaterial({ color: 0x141416, roughness: 0.9 }),
   rugGreen: new THREE.MeshStandardMaterial({ color: 0x2f3a2a, roughness: 1 }),
   rugMarble: new THREE.MeshStandardMaterial({ color: 0xd9d3c9, roughness: 1 }),
-  // Perdet: DoubleSide, sepse shihen nga të dyja anët
-  curtainGrey: new THREE.MeshStandardMaterial({ color: 0x86837c, roughness: 1, side: THREE.DoubleSide }),
-  curtainSheer: new THREE.MeshStandardMaterial({
-    color: 0xf3f1ec,
-    roughness: 1,
-    side: THREE.DoubleSide,
-    transparent: true,
-    opacity: 0.75,
-  }),
+  // Perdet kanë ShaderMaterial-in e tyre: materials/curtainMaterial.js
   windowFrame: new THREE.MeshStandardMaterial({ color: 0xeeeeea, roughness: 0.6 }),
   // Gardëroba me xham të errët
   darkGlass: new THREE.MeshStandardMaterial({ color: 0x15171a, roughness: 0.08, metalness: 0.3 }),

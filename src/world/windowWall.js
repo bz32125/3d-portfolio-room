@@ -2,29 +2,31 @@ import * as THREE from 'three';
 import { BOUNDS, SOFFIT, WINDOW } from '../config.js';
 import { MATERIALS } from '../materials/materials.js';
 import { box } from '../utils/box.js';
+import { createCurtainMaterial } from '../materials/curtainMaterial.js';
 
 // Dritarja në murin e djathtë (x = +2.5) dhe perdet.
 // Dritarja: rreth 4.0 × 2.0 m, qendra në z ≈ -0.6 (fotot 03, 08, 11).
 // Poshtë saj, nga ana e shtratit, është radiatori. Përmasat: WINDOW në config.js.
 
 /**
- * Një perde me rrudha: një PlaneGeometry me shumë ndarje horizontale,
- * ku çdo kulm zhvendoset me një valë sinus. Kjo është zhvendosje statike;
- * në Fazën 5 të njëjtën ide e kalojmë në vertex shader që perdet të lëvizin.
+ * Një perde: PlaneGeometry e sheshtë me shumë ndarje (40 për metër në gjerësi,
+ * 24 në lartësi). Rrudhat dhe era nuk llogariten këtu në CPU, por në vertex
+ * shader (shaders/curtain.vert.glsl) në çdo kuadër, në GPU.
+ * @param {object} look  color, opacity, translucency (shih curtainMaterial.js)
  */
-function createCurtain(width, height, material, folds, castShadow = true) {
-  const geo = new THREE.PlaneGeometry(width, height, Math.round(width * 40), 1);
-  const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i);
-    pos.setZ(i, Math.sin((x / width) * Math.PI * 2 * folds) * 0.035);
-  }
-  geo.computeVertexNormals(); // normalet e reja, që drita të shfaqë rrudhat
+function createCurtain(width, height, look, folds, castShadow = true) {
+  const geo = new THREE.PlaneGeometry(width, height, Math.round(width * 40), 24);
+  const material = createCurtainMaterial({ ...look, folds, width, height });
   const mesh = new THREE.Mesh(geo, material);
+  // Hija llogaritet nga gjeometria e sheshtë (pa rrudhat e shader-it): ndryshimi
+  // është 3-4 cm, s'duket, dhe na kursen një customDepthMaterial.
   mesh.castShadow = castShadow;
-  mesh.receiveShadow = true;
   return mesh;
 }
+
+// Pamja e dy llojeve të perdeve (ngjyrat nga fotot; translucency = vlerësim)
+const SHEER = { color: 0xf3f1ec, opacity: 0.72, translucency: 0.55 };
+const GREY = { color: 0x86837c, opacity: 1, translucency: 0.12 };
 
 /**
  * Qielli prapa dritares: një plan me 4 kulme dhe ngjyrë për çdo kulm
@@ -72,10 +74,10 @@ export function createWindowWall() {
   };
   // Perdja e bardhë (sheer) mbulon gjysmën e dritares
   // castShadow = false: perdja e hollë e lë diellin të kalojë (është e tejdukshme)
-  place(createCurtain(2.4, curtainH, MATERIALS.curtainSheer, 13, false), centerZ + 0.6, 0.12);
+  place(createCurtain(2.4, curtainH, SHEER, 13, false), centerZ + 0.6, 0.12);
   // Perdet gri, të mbledhura në të dy anët e dritares
-  place(createCurtain(0.9, curtainH, MATERIALS.curtainGrey, 6), centerZ - width / 2 - 0.2, 0.2);
-  place(createCurtain(0.9, curtainH, MATERIALS.curtainGrey, 6), centerZ + width / 2 + 0.2, 0.2);
+  place(createCurtain(0.9, curtainH, GREY, 6), centerZ - width / 2 - 0.2, 0.2);
+  place(createCurtain(0.9, curtainH, GREY, 6), centerZ + width / 2 + 0.2, 0.2);
 
   // Radiatori i bardhë poshtë dritares, nga ana e shtratit (foto 11–12)
   const radiator = new THREE.Group();

@@ -78,7 +78,8 @@ body {
   cursor: pointer;
 }
 
-#time-auto {
+#time-auto,
+#window-open {
   flex: none;
   min-height: 32px;
   padding: 0 12px;
@@ -90,12 +91,14 @@ body {
   cursor: pointer;
 }
 
-#time-auto[aria-pressed='true'] {
+#time-auto[aria-pressed='true'],
+#window-open[aria-pressed='true'] {
   background: #ffc56b;
   color: #1a1714;
 }
 
 #time-auto:focus-visible,
+#window-open:focus-visible,
 #time:focus-visible {
   outline: 2px solid #ffc56b;
   outline-offset: 2px;
