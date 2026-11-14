@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { ROOM, BOUNDS, CORRIDOR, WINDOW } from '../config.js';
+import { MATERIALS } from '../materials/materials.js';
+import { metricPlane } from '../utils/box.js';
 
 // Guaska e dhomës: dyshemeja, tavani dhe 4 muret.
 // Çdo pjesë është një PlaneGeometry (sipërfaqe e sheshtë, pa trashësi).
@@ -7,14 +9,13 @@ export function createRoom() {
   const room = new THREE.Group();
   room.name = 'room';
 
-  // Materiale të përkohshme me ngjyra nga fotot; teksturat vijnë në Fazën 5.
-  const floorMat = new THREE.MeshStandardMaterial({ color: 0xe6ddd0, roughness: 0.6 });
-  const wallMat = new THREE.MeshStandardMaterial({ color: 0xf2eee6, roughness: 0.9 });
+  // Materialet me tekstura (pllakat, suvaja) janë në materials.js, të përbashkëta
+  // me korridorin. metricPlane = PlaneGeometry me UV në metra (utils/box.js).
   const ceilingMat = new THREE.MeshStandardMaterial({ color: 0xf5f3ef, roughness: 1 });
 
   // Dyshemeja. Një plane krijohet vertikal (në rrafshin XY),
   // ndaj e rrotullojmë -90° rreth X që të shtrihet horizontalisht.
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.width, ROOM.depth), floorMat);
+  const floor = new THREE.Mesh(metricPlane(ROOM.width, ROOM.depth), MATERIALS.floorTiles);
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = true;
   floor.name = 'floor';
@@ -58,7 +59,7 @@ export function createRoom() {
   ];
 
   for (const wall of walls) {
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(wall.w, wall.h), wallMat);
+    const mesh = new THREE.Mesh(metricPlane(wall.w, wall.h), MATERIALS.wallPlaster);
     mesh.position.set(...wall.pos);
     mesh.rotation.y = wall.rotY;
     mesh.receiveShadow = true;

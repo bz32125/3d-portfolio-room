@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { CORRIDOR } from '../config.js';
 import { MATERIALS } from '../materials/materials.js';
-import { box } from '../utils/box.js';
+import { box, metricPlane } from '../utils/box.js';
 
 // Korridori i hyrjes (fotot 01, 02, 13): dyshemeja, tavani, tre muret,
 // dera në fund dhe komodina e arrës me pasqyrën e rrumbullakët.
@@ -16,11 +16,9 @@ export function createCorridor() {
   const cx = (minX + maxX) / 2;
   const cz = (minZ + maxZ) / 2;
 
-  const floorMat = new THREE.MeshStandardMaterial({ color: 0xe6ddd0, roughness: 0.6 });
-  const wallMat = new THREE.MeshStandardMaterial({ color: 0xf2eee6, roughness: 0.9 });
 
   // Dyshemeja ka emrin e vet: Picker-i e pranon si dysheme për klik.
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(len, wid), floorMat);
+  const floor = new THREE.Mesh(metricPlane(len, wid), MATERIALS.floorTiles);
   floor.rotation.x = -Math.PI / 2;
   floor.position.set(cx, 0, cz);
   floor.receiveShadow = true;
@@ -40,7 +38,7 @@ export function createCorridor() {
     { w: wid, pos: [minX, height / 2, cz], rotY: Math.PI / 2 }, // muri me derë
   ];
   for (const wall of walls) {
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(wall.w, height), wallMat);
+    const mesh = new THREE.Mesh(metricPlane(wall.w, height), MATERIALS.wallPlaster);
     mesh.position.set(...wall.pos);
     mesh.rotation.y = wall.rotY;
     mesh.receiveShadow = true;

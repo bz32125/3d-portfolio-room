@@ -22,10 +22,12 @@ const SHADOW_BOX = new THREE.Box3(
 export class DayCycle {
   /**
    * @param {THREE.WebGLRenderer} renderer  për ekspozimin (toneMappingExposure)
+   * @param {THREE.Scene} scene  për intensitetin e environment map
    * @param {THREE.Mesh} sky  plani me vertexColors prapa dritares (windowWall.js)
    */
-  constructor(renderer, sky) {
+  constructor(renderer, scene, sky) {
     this.renderer = renderer;
+    this.scene = scene;
     this.sky = sky;
     this.group = new THREE.Group();
     this.group.name = 'day-cycle';
@@ -127,6 +129,8 @@ export class DayCycle {
 
     // 6. Ekspozimi i ACES: natën pak më i lartë, që dhoma e ngrohtë të shihet
     this.renderer.toneMappingExposure = THREE.MathUtils.lerp(DAY.exposureDay, DAY.exposureNight, this.night);
+    // 7. Environment map: reflektimet dhe drita e butë, më e dobët natën
+    this.scene.environmentIntensity = THREE.MathUtils.lerp(DAY.envDay, DAY.envNight, this.night);
   }
 
   /**

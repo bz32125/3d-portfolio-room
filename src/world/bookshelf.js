@@ -81,14 +81,18 @@ function seededRandom(seed) {
 
 const BOOK_COLORS = [0x8c2f2f, 0x2f4a6b, 0xd9cfb8, 0x3e5e3a, 0xb8862d, 0x1f1f24, 0x6b3f5e, 0xe8e2d4, 0x9a5b2e];
 
+// Tri lloje kopertinash: me shkëlqim, satin, mat. Roughness s'mund të ndryshojë
+// për çdo instancë në një MeshStandardMaterial, ndaj librat ndahen në 3
+// InstancedMesh, një për secilën roughness: 3 draw calls për qindra libra.
+const BOOK_ROUGHNESS = [0.45, 0.65, 0.85];
+
 /**
- * Mbush ndarjet me libra si InstancedMesh: qindra libra = 1 draw call.
+ * Mbush ndarjet me libra si InstancedMesh: qindra libra = pak draw calls.
  * Si në foto, raftet janë gjysmë-bosh: disa ndarje mbeten të zbrazëta.
  */
 function createBooks(compartments, skip) {
   const rand = seededRandom(7);
-  const matrices = [];
-  const colors = [];
+  const books = []; // { matrix, color, kind }
   const m = new THREE.Matrix4();
   const q = new THREE.Quaternion();
 
@@ -106,26 +110,31 @@ function createBooks(compartments, skip) {
         q,
         new THREE.Vector3(w, h, d),
       );
-      matrices.push(m.clone());
-      colors.push(new THREE.Color(BOOK_COLORS[Math.floor(rand() * BOOK_COLORS.length)]));
+      // Ngjyra bazë nga paleta + ndryshim i vogël (±5% nuancë/ndriçim) për çdo libër,
+      // që dy libra "blu" të mos jenë identikë
+      const color = new THREE.Color(BOOK_COLORS[Math.floor(rand() * BOOK_COLORS.length)]);
+      color.offsetHSL((rand() - 0.5) * 0.03, (rand() - 0.5) * 0.1, (rand() - 0.5) * 0.1);
+      books.push({ matrix: m.clone(), color, kind: Math.floor(rand() * BOOK_ROUGHNESS.length) });
       x += w + 0.002;
     }
   });
 
-  // Gjeometri 1×1×1 që shkallëzohet për çdo libër me matricën e tij
-  const mesh = new THREE.InstancedMesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshStandardMaterial({ roughness: 0.8 }),
-    matrices.length,
-  );
-  matrices.forEach((mat, i) => {
-    mesh.setMatrixAt(i, mat);
-    mesh.setColorAt(i, colors[i]);
+  // Gjeometri 1×1×1 (e përbashkët) që shkallëzohet për çdo libër me matricën e tij
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
+  const group = new THREE.Group();
+  group.name = 'books';
+  BOOK_ROUGHNESS.forEach((roughness, kind) => {
+    const list = books.filter((b) => b.kind === kind);
+    const mesh = new THREE.InstancedMesh(geometry, new THREE.MeshStandardMaterial({ roughness }), list.length);
+    list.forEach((b, i) => {
+      mesh.setMatrixAt(i, b.matrix); // pozicioni + madhësia e librit
+      mesh.setColorAt(i, b.color); // ngjyra e kopertinës (instanceColor)
+    });
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    group.add(mesh);
   });
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  mesh.name = 'books';
-  return mesh;
+  return group;
 }
 
 /**
