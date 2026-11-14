@@ -30,6 +30,7 @@ export function createCorridor() {
   const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(len, wid), MATERIALS.soffit);
   ceiling.rotation.x = Math.PI / 2;
   ceiling.position.set(cx, height, cz);
+  ceiling.castShadow = true; // që dielli të mos ndriçojë korridorin nga lart
   g.add(ceiling);
 
   // Muret, me faqen e dukshme nga brenda korridorit
@@ -43,6 +44,7 @@ export function createCorridor() {
     mesh.position.set(...wall.pos);
     mesh.rotation.y = wall.rotY;
     mesh.receiveShadow = true;
+    mesh.castShadow = true;
     g.add(mesh);
   }
 

@@ -1,19 +1,18 @@
 import * as THREE from 'three';
-import { BOUNDS, SOFFIT } from '../config.js';
+import { BOUNDS, SOFFIT, WINDOW } from '../config.js';
 import { MATERIALS } from '../materials/materials.js';
 import { box } from '../utils/box.js';
 
 // Dritarja në murin e djathtë (x = +2.5) dhe perdet.
 // Dritarja: rreth 4.0 × 2.0 m, qendra në z ≈ -0.6 (fotot 03, 08, 11).
-// Poshtë saj, nga ana e shtratit, është radiatori.
-export const WINDOW = { centerZ: -0.6, width: 4.0, height: 2.0, bottom: 0.55 };
+// Poshtë saj, nga ana e shtratit, është radiatori. Përmasat: WINDOW në config.js.
 
 /**
  * Një perde me rrudha: një PlaneGeometry me shumë ndarje horizontale,
  * ku çdo kulm zhvendoset me një valë sinus. Kjo është zhvendosje statike;
  * në Fazën 5 të njëjtën ide e kalojmë në vertex shader që perdet të lëvizin.
  */
-function createCurtain(width, height, material, folds) {
+function createCurtain(width, height, material, folds, castShadow = true) {
   const geo = new THREE.PlaneGeometry(width, height, Math.round(width * 40), 1);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i++) {
@@ -22,9 +21,24 @@ function createCurtain(width, height, material, folds) {
   }
   geo.computeVertexNormals(); // normalet e reja, që drita të shfaqë rrudhat
   const mesh = new THREE.Mesh(geo, material);
-  mesh.castShadow = true;
+  mesh.castShadow = castShadow;
   mesh.receiveShadow = true;
   return mesh;
+}
+
+/**
+ * Qielli prapa dritares: një plan me 4 kulme dhe ngjyrë për çdo kulm
+ * (vertexColors). Dy kulmet e sipërme = ngjyra e zenitit, dy të poshtmet =
+ * ngjyra e horizontit; GPU-ja i interpolon mes tyre, kështu del një gradient.
+ * dayCycle.js i ndryshon këto ngjyra sipas orës.
+ */
+function createSky(width, height) {
+  const geo = new THREE.PlaneGeometry(width, height);
+  const colors = new Float32Array(geo.attributes.position.count * 3); // 4 kulme × RGB
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  const sky = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true }));
+  sky.name = 'sky';
+  return sky;
 }
 
 export function createWindowWall() {
@@ -37,8 +51,9 @@ export function createWindowWall() {
 
   // "Qielli": një plan prapa murit. Muri është vetëm një sipërfaqe, ndaj
   // e vendosim planin pak brenda, me kornizë rreth tij.
-  const sky = new THREE.Mesh(new THREE.PlaneGeometry(width, height), MATERIALS.sky);
-  sky.position.set(x - 0.01, cy, centerZ);
+  // Tani muri ka hapje (room.js), ndaj qielli vendoset pak jashtë murit.
+  const sky = createSky(width, height);
+  sky.position.set(x + 0.05, cy, centerZ);
   sky.rotation.y = -Math.PI / 2; // faqja shikon nga brenda dhomës (-X)
   g.add(sky);
   const f = 0.06;
@@ -56,7 +71,8 @@ export function createWindowWall() {
     g.add(mesh);
   };
   // Perdja e bardhë (sheer) mbulon gjysmën e dritares
-  place(createCurtain(2.4, curtainH, MATERIALS.curtainSheer, 13), centerZ + 0.6, 0.12);
+  // castShadow = false: perdja e hollë e lë diellin të kalojë (është e tejdukshme)
+  place(createCurtain(2.4, curtainH, MATERIALS.curtainSheer, 13, false), centerZ + 0.6, 0.12);
   // Perdet gri, të mbledhura në të dy anët e dritares
   place(createCurtain(0.9, curtainH, MATERIALS.curtainGrey, 6), centerZ - width / 2 - 0.2, 0.2);
   place(createCurtain(0.9, curtainH, MATERIALS.curtainGrey, 6), centerZ + width / 2 + 0.2, 0.2);

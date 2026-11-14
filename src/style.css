@@ -45,3 +45,68 @@ body {
 .status {
   font-weight: 600;
 }
+
+/* Ora e ditës: shirit në krye, në mes. Ky element PRANON klikime/prekje. */
+.timebar {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(460px, calc(100% - 32px));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(26, 23, 20, 0.72);
+  backdrop-filter: blur(4px);
+  color: #f4efe6;
+  font: 600 15px/1 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.time-label output {
+  display: inline-block;
+  min-width: 3.2em; /* "00:00" nuk e lëviz slider-in kur ndryshojnë shifrat */
+  font-variant-numeric: tabular-nums;
+}
+
+#time {
+  flex: 1;
+  min-width: 0;
+  height: 28px; /* zonë e madhe prekjeje për gishtin */
+  accent-color: #ffc56b;
+  cursor: pointer;
+}
+
+#time-auto {
+  flex: none;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(244, 239, 230, 0.35);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+#time-auto[aria-pressed='true'] {
+  background: #ffc56b;
+  color: #1a1714;
+}
+
+#time-auto:focus-visible,
+#time:focus-visible {
+  outline: 2px solid #ffc56b;
+  outline-offset: 2px;
+}
+
+/* Tekst vetëm për lexuesit e ekranit (accessibility) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

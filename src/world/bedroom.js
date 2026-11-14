@@ -8,6 +8,15 @@ import { box } from '../utils/box.js';
 // Përmasat: shtrat dopio standard 1.6 × 2.0 m (vlerësim).
 export const BED = { x: 0.3, width: 1.6, length: 2.05, top: 0.5 };
 
+// Komodinat: përmasat dhe pozicionet (x) e tyre, të përbashkëta me dritat.
+const STAND = { w: 0.45, d: 0.38, h: 0.45 };
+const STAND_Z = BOUNDS.front - STAND.d / 2 - 0.02;
+const STAND_X = [-1, 1].map((side) => BED.x + side * (BED.width / 2 + 0.2 + STAND.w / 2));
+
+// Qendra e abazhurit të secilës llambë: roomLights.js vendos aty një PointLight.
+// Llamba është vlerësim (s'duket qartë në foto): bazë 25 cm + abazhur 18 cm.
+export const LAMPS = STAND_X.map((x) => new THREE.Vector3(x, STAND.h + 0.34, STAND_Z + 0.04));
+
 export function createBed() {
   const g = new THREE.Group();
   g.name = 'bed';
@@ -42,19 +51,34 @@ export function createBed() {
 export function createNightstands() {
   const g = new THREE.Group();
   g.name = 'nightstands';
-  const w = 0.45;
-  const d = 0.38;
-  const h = 0.45;
-  const z = BOUNDS.front - d / 2 - 0.02;
-  for (const side of [-1, 1]) {
-    const x = BED.x + side * (BED.width / 2 + 0.2 + w / 2);
+  const { w, d, h } = STAND;
+  const z = STAND_Z;
+  for (const x of STAND_X) {
     g.add(box(w, 0.04, d, MATERIALS.walnut, x, h - 0.02, z)); // pllaka
     g.add(box(w - 0.04, 0.16, d - 0.02, MATERIALS.walnut, x, h - 0.12, z)); // sirtari
     g.add(box(w - 0.04, 0.008, 0.005, MATERIALS.walnutDark, x, h - 0.2, z - d / 2)); // vija
     g.add(box(w - 0.06, 0.02, d - 0.06, MATERIALS.walnutDark, x, 0.22, z)); // rafti poshtë
     for (const dx of [-1, 1]) g.add(box(0.03, h - 0.04, d - 0.04, MATERIALS.plinth, x + dx * (w / 2 - 0.03), (h - 0.04) / 2, z));
   }
+  for (const p of LAMPS) g.add(createLamp(p));
   return g;
+}
+
+// Gjeometritë e llambës, të përbashkëta për të dyja llambat.
+const LAMP_BASE = new THREE.CylinderGeometry(0.02, 0.06, 0.25, 16);
+const LAMP_SHADE = new THREE.CylinderGeometry(0.1, 0.14, 0.18, 24, 1, true); // openEnded: tub pa kapak
+
+/** Llamba e natës: këmbë e artë + abazhur pëlhure që shkëlqen natën. */
+function createLamp(center) {
+  const lamp = new THREE.Group();
+  const base = new THREE.Mesh(LAMP_BASE, MATERIALS.gold);
+  base.position.set(center.x, STAND.h + 0.125, center.z);
+  base.castShadow = true;
+  const shade = new THREE.Mesh(LAMP_SHADE, MATERIALS.lampShade);
+  shade.position.copy(center);
+  // Abazhuri nuk hedh hije: ai mban burimin e dritës brenda vetes
+  lamp.add(base, shade);
+  return lamp;
 }
 
 /** Tri pikturat në murin përballë, mes shtratit dhe dritares (foto 11–12). */

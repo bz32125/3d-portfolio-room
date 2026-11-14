@@ -4,16 +4,31 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cozy Room · Besnik Zeqiri</title>
+    <!-- Ikona e skedës si SVG inline: pa skedar shtesë, pa 404 në console -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='6' y='4' width='20' height='24' rx='2' fill='%237a1f2b'/%3E%3Crect x='9' y='4' width='2' height='24' fill='%23b8954a'/%3E%3C/svg%3E"
+    />
   </head>
   <body>
     <!-- Three.js vizaton brenda këtij canvas-i -->
     <canvas id="scene"></canvas>
 
+    <!-- Ora e ditës: slider 0–24 h + auto (Faza 5) -->
+    <div class="timebar">
+      <label for="time" class="time-label">
+        <span class="sr-only">Time of day</span>
+        <output id="time-label">15:00</output>
+      </label>
+      <input id="time" type="range" min="0" max="24" step="0.25" value="15" />
+      <button id="time-auto" type="button" aria-pressed="false">▶ auto</button>
+    </div>
+
     <!-- HUD: udhëzimet në ekran (rubrika A4) -->
     <div class="hud">
       <p class="hint">
         Click the floor to walk · click the <b>chair</b>, the <b>armchair</b>, the <b>bed</b> or the
-        <b>red book</b> · drag to look around
+        <b>red book</b> · drag to look around · slider = time of day
       </p>
       <p id="status" class="status">Idle</p>
     </div>

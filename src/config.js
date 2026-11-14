@@ -54,3 +54,97 @@ export const NAV_AREAS = [
   { minX: BOUNDS.left, maxX: BOUNDS.right, minZ: BOUNDS.back, maxZ: BOUNDS.front },
   { minX: CORRIDOR.minX, maxX: CORRIDOR.maxX + 0.5, minZ: CORRIDOR.minZ, maxZ: CORRIDOR.maxZ },
 ];
+
+// Dritarja në murin e djathtë (x = +2.5), fotot 03, 08, 11.
+// Rreth 4.0 × 2.0 m, qendra në z ≈ -0.6. Muri ka një hapje të vërtetë këtu,
+// që dielli (DirectionalLight) të hyjë vetëm nga dritarja.
+export const WINDOW = { centerZ: -0.6, width: 4.0, height: 2.0, bottom: 0.55 };
+
+// ---------------------------------------------------------------------------
+// Cikli i ditës (Faza 5). Çdo tabelë është listë keyframe-sh [ora, vlera];
+// mes dy pikave vlera interpolohet linearisht (lerp).
+// Vlerat janë vlerësime (shih listën në PR), ndryshoji këtu pa prekur kodin.
+// ---------------------------------------------------------------------------
+export const DAY = {
+  startHour: 15, // ora me të cilën hapet loja (diell i ngrohtë pasdite)
+  secondsPerHour: 10, // modaliteti "auto": 1 orë në lojë ≈ 10 s reale
+  smoothing: 4, // sa shpejt ora e shfaqur ndjek slider-in (1/s), për lëvizje të butë
+
+  sunrise: 6,
+  sunset: 18.5,
+  minElevation: 4, // gradë mbi horizont në lindje/perëndim
+  maxElevation: 50, // gradë në mesditë; më lart dielli s'do të hynte thellë në dhomë
+  azimuthSwing: 55, // gradë: në mëngjes dielli vjen nga -Z, në mbrëmje nga +Z
+  shadowMapSize: 2048,
+
+  // Intensiteti i diellit (DirectionalLight.intensity)
+  sunIntensity: [
+    [0, 0],
+    [5.75, 0],
+    [6, 0.4],
+    [9, 1.2],
+    [12, 2.5],
+    [14, 2.5],
+    [17, 0.6],
+    [18.5, 0.2],
+    [18.75, 0],
+    [24, 0],
+  ],
+  // Ngjyra e diellit: portokalli në lindje/perëndim, e bardhë neutrale në mesditë
+  sunColor: [
+    [6, 0xff9a5a],
+    [9, 0xffdcb8],
+    [12, 0xfff8f0],
+    [14, 0xfff8f0],
+    [17, 0xffcf9a],
+    [18.5, 0xff8448],
+  ],
+  // HemisphereLight: dritë ambienti, më e fortë ditën, e dobët natën
+  hemiIntensity: [
+    [0, 0.2],
+    [5.5, 0.2],
+    [7.5, 1.1],
+    [12, 1.35],
+    [17, 1.1],
+    [19.5, 0.2],
+    [24, 0.2],
+  ],
+  // Qielli prapa dritares: ngjyra lart (zenith) dhe afër horizontit
+  skyTop: [
+    [0, 0x05091a],
+    [5, 0x0a1230],
+    [6.25, 0x5c6fa3],
+    [8, 0x7fb0e6],
+    [12, 0x8cbcf0],
+    [17, 0x7fa9dd],
+    [18.5, 0x4a4f8a],
+    [19.5, 0x141a3d],
+    [24, 0x05091a],
+  ],
+  skyHorizon: [
+    [0, 0x0d1430],
+    [5, 0x1d2347],
+    [6.25, 0xf0a070],
+    [8, 0xd5e6f5],
+    [12, 0xe6f0fa],
+    [17, 0xf3d9b0],
+    [18.5, 0xf07a45],
+    [19.5, 0x3a2d52],
+    [24, 0x0d1430],
+  ],
+  // Natën dritat e dhomës ndizen gradualisht (faktori "night" 0 → 1)
+  nightFadeIn: [17.5, 19], // mbrëmje: nga 17:30 deri 19:00
+  nightFadeOut: [5.5, 7], // mëngjes: nga 05:30 deri 07:00
+  exposureDay: 1.0,
+  exposureNight: 1.35, // natën pak më shumë ekspozim, që dhoma të mos jetë e zezë
+};
+
+// Dritat e dhomës për natën: ngjyrë e ngrohtë ~2700 K (llamba "warm white").
+// Intensiteti i PointLight është në candela (physically correct lights në r155+).
+export const ROOM_LIGHTS = {
+  warm: 0xffb06a, // ≈ 2700 K
+  coveIntensity: 5, // 2 PointLight pranë shiritave LED të tavanit
+  lampIntensity: 1.6, // llamba mbi secilën komodinë (më shumë djeg murin pas saj)
+  ledEmissive: 2.5, // shkëlqimi i shiritave LED kur janë ndezur plotësisht
+  screenGlow: 4, // RectAreaLight para monitorit (nits)
+};

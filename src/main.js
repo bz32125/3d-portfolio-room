@@ -5,7 +5,6 @@ import { createRenderer } from './core/renderer.js';
 import { createCamera, createControls } from './core/camera.js';
 import { handleResize } from './core/resize.js';
 import { createRoom } from './world/room.js';
-import { createLights } from './world/lights.js';
 import { createSoffit } from './world/soffit.js';
 import { createBookshelves } from './world/bookshelf.js';
 import { createDesk } from './world/desk.js';
@@ -20,6 +19,8 @@ import { Character } from './character/character.js';
 import { NavGrid } from './character/navigation.js';
 import { SPOTS } from './character/spots.js';
 import { Picker } from './interaction/picker.js';
+import { DayCycle } from './lighting/dayCycle.js';
+import { createTimeControls } from './ui/timeControls.js';
 
 // 1. Canvas, renderer, skena, kamera
 const canvas = document.querySelector('#scene');
@@ -54,8 +55,12 @@ scene.add(
   bed,
   nightstands,
   createPaintings(),
-  createLights(),
 );
+
+// 2b. Drita: cikli i ditës (dielli, qielli, rrezet, dritat e natës) + slider-i i orës
+const day = new DayCycle(renderer, windowWall.getObjectByName('sky'));
+scene.add(day.group);
+const timeControls = createTimeControls(day);
 
 // 3. Karakteri dhe navigimi.
 // Pengesat: çdo mobilje që zë vend në dysheme (qilimat jo, mbi to ecet).
@@ -126,6 +131,11 @@ if (intro) {
 // Vetëm për zhvillim: ?cam=x,y,z&target=x,y,z në URL vendos kamerën,
 // p.sh. /?cam=-2,1.7,3&target=1.5,1,-1 për të parë dritaren.
 const params = new URLSearchParams(window.location.search);
+if (params.has('t')) {
+  // p.sh. ?t=21 për natën: kërcen direkt në atë orë, pa animacion
+  day.setTarget(Number(params.get('t')));
+  day.setTime(Number(params.get('t')));
+}
 if (params.has('cam')) camera.position.set(...params.get('cam').split(',').map(Number));
 if (params.has('target')) controls.target.set(...params.get('target').split(',').map(Number));
 controls.update();
@@ -141,6 +151,8 @@ handleResize(camera, renderer);
 const clock = new THREE.Clock();
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05);
+  day.update(dt);
+  timeControls.update();
   character.update(dt);
   cameraTween.update(dt);
   controls.update(); // e nevojshme për damping
@@ -150,4 +162,4 @@ function tick() {
 tick();
 
 // Vetëm në `npm run dev`: qasje nga console e browser-it për debug.
-if (import.meta.env.DEV) window.__app = { scene, camera, character, nav };
+if (import.meta.env.DEV) window.__app = { scene, camera, controls, character, nav, day, renderer };
