@@ -1,6 +1,8 @@
 // Pajisje me prekje (telefon, tablet): aty ulim cilësinë që të mbajmë FPS-në.
 // (pointer: coarse) = gishti është pajisja kryesore, jo miu.
 export const IS_MOBILE = window.matchMedia('(pointer: coarse)').matches;
+// Pixel ratio maksimal: 2 në desktop, 1.5 në telefon (shumë më pak piksel për t'u vizatuar)
+export const MAX_PIXEL_RATIO = IS_MOBILE ? 1.5 : 2;
 
 // Përmasat e dhomës në metra (1 unit = 1 m).
 // Matje të përafërta nga besniku, 2026-11-06.
@@ -79,7 +81,7 @@ export const DAY = {
   minElevation: 4, // gradë mbi horizont në lindje/perëndim
   maxElevation: 50, // gradë në mesditë; më lart dielli s'do të hynte thellë në dhomë
   azimuthSwing: 55, // gradë: në mëngjes dielli vjen nga -Z, në mbrëmje nga +Z
-  shadowMapSize: 2048,
+  shadowMapSize: IS_MOBILE ? 1024 : 2048, // harta e hijeve më e vogël në telefon
 
   // Intensiteti i diellit (DirectionalLight.intensity)
   sunIntensity: [

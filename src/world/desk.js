@@ -51,17 +51,21 @@ function createLaptop(x, z) {
   return g;
 }
 
-function createMonitor(x, z) {
+function createMonitor(x, z, screenMaterial) {
   const g = new THREE.Group();
   g.add(box(0.2, 0.012, 0.15, MATERIALS.blackMatte, 0, 0.006, 0)); // baza
   g.add(box(0.035, 0.13, 0.03, MATERIALS.blackMatte, 0, 0.075, -0.03)); // qafa
   g.add(box(0.5, 0.31, 0.03, MATERIALS.blackMatte, 0, 0.29, -0.02)); // korniza
-  g.add(box(0.48, 0.29, 0.004, MATERIALS.screenOn, 0, 0.29, -0.004)); // ekrani
+  // Ekrani: vetëm faqja e përparme merr kodin që lëviz (shih monitorScreen.js)
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.48, 0.29), screenMaterial);
+  screen.position.set(0, 0.29, -0.004);
+  g.add(screen);
   g.position.set(x, SURFACE, z);
   return g;
 }
 
-export function createDesk() {
+/** @param {THREE.Material} screenMaterial  materiali i ekranit të monitorit (monitorScreen.js) */
+export function createDesk(screenMaterial) {
   const group = new THREE.Group();
   group.name = 'desk';
 
@@ -81,7 +85,7 @@ export function createDesk() {
 
   // Pajisjet mbi tavolinë (pozicionet nga fotot)
   const z = BOUNDS.back + 0.22;
-  group.add(createMonitor(0.1, z));
+  group.add(createMonitor(0.1, z, screenMaterial));
   group.add(createLaptop(-0.42, BOUNDS.back + 0.42));
   group.add(box(0.2, 0.45, 0.42, MATERIALS.blackMatte, 0.66, SURFACE + 0.225, BOUNDS.back + 0.24)); // PC
   group.add(box(0.08, 0.18, 0.1, MATERIALS.blackMatte, 0.45, SURFACE + 0.09, BOUNDS.back + 0.12)); // altoparlant

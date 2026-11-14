@@ -1,10 +1,16 @@
 # Cozy Room: An Interactive 3D Portfolio
 
-A small interactive 3D scene built with **three.js**: a stylized rebuild of my real study room, where an animated character lives through the day. You move the character around, make it work at the desk, read or sleep, and change the time of day with a slider. One book on the shelf holds my developer portfolio.
+A small interactive 3D scene built with **three.js**: a stylized rebuild of my real study room, where a character lives through the day. You walk the character around, make it work at the desk, read or sleep, change the time of day with a slider, and open the red book on the shelf to read my portfolio.
 
 Final project for **Computer Graphics (CCS-601)**, SEEU, 2026/27, Prof. Dr. Visar Shehu. Individual project by Besnik Zeqiri.
 
-> Status: **Phase 1** (project setup, camera, empty room). Features below describe the planned final version.
+**Live demo:** <https://bz32125.github.io/3d-portfolio-room/> (published by GitHub Actions from `main`; see [Deploy](#deploy)).
+
+![Afternoon](docs/faza-10-dita.png)
+
+| Night | Portfolio book | Phone |
+| --- | --- | --- |
+| ![Night](docs/faza-10-nata.png) | ![Portfolio](docs/faza-9-portfolio.png) | ![Phone](docs/faza-10-telefon.png) |
 
 ## Run it
 
@@ -17,103 +23,118 @@ npm run build    # production build in dist/
 npm run preview  # serve the production build
 ```
 
-## Concept
+Development helpers (URL parameters): `?t=21` jumps to 21:00, `?cam=x,y,z&target=x,y,z` places the camera and skips the title screen. In `npm run dev` an FPS / draw-call counter is shown and `window.__app` gives console access to the scene.
 
-| What you do | What happens |
-| --- | --- |
-| Click on the floor | The character walks there, around the furniture |
-| Click the desk chair | The character sits down and types at the computer |
-| Click the armchair | The character sits down and reads |
-| Click the portfolio book on the shelf | The camera flies into the opened book, which shows my CV (about, skills, projects, education, contact) and a CV download button |
-| Move the time slider (0–24 h) | The sun changes angle, strength and colour through the window; at night the warm room lights turn on |
-| Drag / scroll | Orbit and zoom the camera |
+## Controls
 
-Core features must be delivered; stretch features are dropped first if time runs short.
+| Action | Desktop | Phone |
+| --- | --- | --- |
+| Walk | click the floor | tap the floor |
+| Work / read / sleep | click the chair / armchair / bed | tap |
+| Open the portfolio | click the red book on the shelf | tap |
+| Look around / zoom | drag / mouse wheel | one-finger drag / pinch |
+| Time of day | slider at the top, **▶ auto** lets time run (1 h ≈ 10 s) | same |
+| Window open (more wind in the curtains) | 🪟 | same |
+| Character follows the clock | 🗓 routine | same |
+| Camera follows the character | 🎥 follow | same |
+| Help | **?** button, or the H / ? keys | **?** button |
+| Close the book | **Back to the room** or Esc | **Back to the room** |
+| Download CV | top-right button, or inside the book | same |
 
-- **Core:** room, character with walk / sit-type / sit-read / sleep animations, click-to-move, clickable furniture, time-of-day lighting, portfolio book, desktop + phone, online deployment.
-- **Stretch:** character follows the clock by itself (works by day, sleeps at night), reflections on the wardrobe glass, small details such as an animated monitor screen.
+The game starts with a title screen; **Enter** starts the intro: the character walks in from the corridor and the camera eases into the room.
+
+## Computer Graphics techniques: where they are in the code
+
+| Rubric technique | What is shown | File → function |
+| --- | --- | --- |
+| **Lighting** | 4 light types: `HemisphereLight`, `DirectionalLight` sun with shadows, `PointLight` (LED cove + bedside lamps), `RectAreaLight` (monitor glow). Sun position, intensity and colour from hour keyframes. Shadow camera fitted tightly around the room each time the sun moves; `bias` / `normalBias` tuned against acne and peter-panning. The right wall has a real window opening and the room shell casts shadows, so sun only enters through the window. Fake light shafts with additive blending and cylindrical billboarding. | `src/lighting/dayCycle.js` → `DayCycle.setTime`, `fitShadowCamera`; `src/lighting/roomLights.js` → `createRoomLights`, `setNight`; `src/lighting/lightShafts.js` → `faceCamera`; `src/world/room.js` → `rightWallAroundWindow` |
+| **Colour** | sRGB output (`outputColorSpace`), `colorSpace = SRGBColorSpace` only on colour maps (normal/roughness stay linear), ACES filmic tone mapping with exposure that changes from day to night; colour keyframes interpolated in linear space; sky gradient through vertex colours. | `src/core/renderer.js` → `createRenderer`; `src/materials/textures.js` → `loadTexture`; `src/lighting/keyframes.js` → `sampleColor`; `src/world/windowWall.js` → `createSky` |
+| **Textures** | Colour + normal + roughness maps (CC0), `RepeatWrapping` + `repeat` in metres, mipmaps, anisotropic filtering at the GPU maximum; UVs scaled to real size so the grain is the same on every board; CanvasTextures for the monitor code, the book title page, light shafts and dust. | `src/materials/textures.js` → `loadTexture`, `applyAnisotropy`; `src/utils/box.js` → `scaleBoxUvs`, `metricPlane`; `src/world/monitorScreen.js` |
+| **PBR** | Rough walnut, polished tiles, chrome and gold (metalness 1), mirror (metalness 1, roughness 0.02), fabric with `sheen`, leather and TV with `clearcoat` (`MeshPhysicalMaterial`); environment map from `RoomEnvironment` via `PMREMGenerator`, weaker at night; real-time `Reflector` for the wardrobe mirror on desktop. | `src/materials/materials.js`; `src/lighting/environment.js` → `createEnvironment`; `src/world/wardrobe.js` → `createMirror` |
+| **Own ShaderMaterial** | Curtains: vertex shader makes folds + wind (amplitude grows toward the bottom) and recomputes the normal analytically; fragment shader does lambert + rim, an animated colour shift, back-lit translucency inside the window rectangle and alpha for the sheer curtain. Uniforms `uTime, uWind, uSunIntensity, uSunColor, uSunDir, uBaseColor…`, varyings `vUv, vNormal, vWorldPos`. | `src/shaders/curtain.vert.glsl`, `src/shaders/curtain.frag.glsl`; `src/materials/curtainMaterial.js` → `createCurtainMaterial`, `updateCurtains` |
+| **Animation** | Everything uses delta time, clamped to 0.05 s so nothing jumps when the tab regains focus; easing for the camera, the time slider and the book; `AnimationMixer` with 0.3 s crossfades; walk speed measured from the walk clip (no foot sliding); Promise-based tweens chained with `await`. | `src/main.js` → `tick`; `src/core/tween.js`; `src/core/cameraTween.js`; `src/character/character.js` → `animate`, `measureWalkSpeed`; `src/portfolio/book.js` → `open`, `close` |
+| **Interaction** | `Raycaster` picking with hover highlight; click-to-walk with A* on a 10 cm grid; OrbitControls with damping, the camera kept inside the walls, optional follow; HTML UI (time slider, toggles, help, portfolio book). | `src/interaction/picker.js` → `Picker`; `src/character/navigation.js` → `NavGrid.findPath`; `src/core/camera.js` → `keepInsideRoom`, `followPoint`; `src/ui/` |
+| Curves (chapter 13) | The A* path is smoothed with a centripetal `CatmullRomCurve3`. | `src/character/navigation.js` → `smooth` |
+
+### Performance
+
+Measured in the main view: about 75–200 draw calls depending on the view, ~16k triangles. Books are 3 `InstancedMesh`es, box geometries are cached and shared, materials are shared. One shadow-casting light (2048 map, 1024 on phones). On phones the pixel ratio is capped at 1.5 and the mirror uses the cheaper environment map instead of the `Reflector`. Lights are never added or removed (only faded), so shaders are not recompiled when the time changes. The scene is not rendered while the portfolio page covers the screen.
 
 ## The room
 
-The scene is based on photos and measurements of my real room. Units are **metres** (1 three.js unit = 1 m).
+The scene is based on photos and measurements of my real room. Units are **metres** (1 three.js unit = 1 m). Origin at the centre of the floor, Y up.
 
-**Coordinate system:** origin at the centre of the floor, Y up. The bookshelf wall is the back wall at `z = -3.5`, the window wall is on the right at `x = +2.5`, the wardrobe and the corridor opening are on the left at `x = -2.5`, and the bed stands against the front wall at `z = +3.5`.
-
-| Object | Size w × h × d (m) | Centre x, y, z (m) |
+| Object | Size w × h × d (m) | Position |
 | --- | --- | --- |
-| Room | 5.0 × 3.15 × 7.0 | 0, 1.575, 0 |
+| Room | 5.0 × 3.15 × 7.0 | centre 0, 1.575, 0 |
 | Lowered ceiling edge with hidden LEDs | height 2.60 | along the walls |
-| Bookshelf wall (two walnut towers, 3 columns each) | 3.85 × 2.60 × 0.36 | 0, 1.30, -3.32 |
-| Floating desk on two 3-drawer pedestals | 2.25 × 0.04 × 0.60 | 0, 0.76, -3.20 |
-| Wall-mounted TV (~65") | 1.45 × 0.83 × 0.05 | 0, 1.45, -3.47 |
-| Monitor, PC tower, laptop | small | on the desk |
-| Office chair (black mesh) | 0.55 × 0.95 × 0.55 | 0.1, 0.48, -2.60 |
-| Marble-pattern rug | 2.4 × 0.01 × 1.7 | 0, 0.005, -0.8 |
-| White coffee table | 1.0 × 0.40 × 0.6 | 0.3, 0.2, -0.9 |
-| Armchair (wooden frame) | 0.75 × 0.80 × 0.75 | 1.6, 0.4, -0.4 |
-| Wardrobe (black body, walnut + mirror doors) | 0.6 × 2.45 × 2.4 | -2.2, 1.225, 2.2 |
-| Window with grey + sheer curtains, radiator below | ~4.0 × 2.0 | on the right wall, centred at z ≈ -0.6 |
-| Double bed with black leather headboard, green quilt | 1.6 × 0.5 × 2.05 | 0.3, 0.25, 2.4 |
-| Two nightstands, three paintings above | 0.45 × 0.45 × 0.38 | either side of the bed |
-| Entrance corridor (door, walnut dresser, round mirror) | 2.5 × 2.6 × 1.3 | x -5.0 … -2.5, z -3.5 … -2.2 |
+| Bookshelf wall (two walnut towers, 3 columns each) | 3.85 × 2.60 × 0.36 | back wall, z = -3.5 |
+| Floating desk on two 3-drawer pedestals, TV, monitor, PC, laptop | 2.25 × 0.04 × 0.60 | between the towers |
+| Office chair, marble-pattern rug, white coffee table, armchair | | centre of the room |
+| Window with grey + sheer curtains, radiator below | ~4.0 × 2.0 | right wall, x = +2.5, z ≈ -0.6 |
+| Wardrobe (black body, walnut + mirror doors) | 0.6 × 2.45 × 2.4 | left wall, x = -2.5 |
+| Double bed, two nightstands with lamps, three paintings | 1.6 × 2.05 | front wall, z = +3.5 |
+| Entrance corridor (door, walnut dresser, round mirror) | 2.5 × 2.6 × 1.3 | x -5.0 … -2.5 |
 
-Measurements of the bookshelf wall are real; room size and the rest are paced or estimated from photos. The game starts in the entrance corridor: the character walks in from the door and the camera eases into the room. Books on the shelves are stylized blocks with no real titles.
-
-Reference photos of the room are kept locally, outside the repository (not published).
-
-**Palette:** walnut wood, warm white walls, light beige floor tiles, grey curtains, gold and black accents.
-
-## Computer Graphics techniques
-
-Each project phase follows the chapter of that week. The table also shows where each of the seven required techniques (rubric A1) lives in the scene.
-
-| Phase | Chapter | Technique | In the scene |
-| --- | --- | --- | --- |
-| 1 | 8 Lighting | Lighting | Hemisphere + directional sun + point/spot room lights; sun shadows on floor and furniture, tuned shadow bias |
-| 2 | 9 Colour | Colour | sRGB output, correct `colorSpace` on every texture, ACES tone mapping for the bright day / dim night range; time slider interpolates sun colour between keyframes |
-| 3 | 10 Textures | Textures | Colour + normal maps on wood, tiles and walls; `RepeatWrapping` on the floor; mipmaps and anisotropic filtering |
-| 4 | 11 PBR | PBR materials | Wood (rough), gold legs (metal), wardrobe glass (smooth); PMREM environment map |
-| 5 | 12 Shaders | Shader | Own `ShaderMaterial` for the curtains: vertex deformation (waving) + animated colour via uniforms and varyings |
-| 6 | 13 Curves | — | Catmull–Rom paths for the character's walk and the camera flight into the book |
-| 7 | 14 Animation | Animation | Delta time (clamped on tab refocus), GSAP easing for camera moves, skeletal clips with `AnimationMixer` cross-fades, a small state machine |
-| 8 | 15 + final | Interaction | Raycaster hover highlight and click, OrbitControls, on-screen instructions; content, phone support, deployment, documentation |
-
-Where each technique lives in the code will be listed here as the phases are built.
+The bookshelf wall is measured; the rest is paced or estimated from photos. All estimates live in `src/config.js` with comments. Reference photos are kept locally, outside the repository.
 
 ## Project structure
 
 ```text
-index.html            canvas the scene is drawn into
+index.html               canvas + HTML UI (time bar, toolbar, help, loader, portfolio page)
 src/
-├─ main.js            entry point: creates the scene, starts the render loop
-├─ config.js          room dimensions and wall positions
-├─ style.css
-├─ core/              renderer, camera + OrbitControls, window resize
-└─ world/             room shell and lights (furniture and character follow)
-docs/                 screenshots of each phase
+├─ main.js               wiring and the render loop
+├─ config.js             all sizes, keyframes, animation names, the daily routine
+├─ core/                 renderer, camera + limits/follow, resize, camera tween, generic tween
+├─ world/                room shell and one file per furniture group, monitor screen
+├─ lighting/             day cycle, room lights, light shafts, environment map, dust
+├─ materials/            shared materials, texture loader, curtain ShaderMaterial
+├─ shaders/              curtain vertex + fragment shader (GLSL)
+├─ character/            character + animations, A* navigation, spots, daily routine
+├─ interaction/          raycaster picking
+├─ portfolio/            book animation and the HTML book page
+├─ data/cv.js            portfolio content (the only source of the page text)
+└─ ui/                   time controls, loader, help, dev stats
+public/
+├─ textures/             CC0 textures (1K JPG)
+├─ models/character.glb  animated character (to be added, see below)
+└─ cv.pdf                CV for the download button (to be added)
+docs/                    screenshots of each phase
 ```
+
+## Content still to add
+
+- **Character model**: put the Quaternius glTF at `public/models/character.glb`. Until then a capsule is used and the console shows one warning. When the model loads, the console lists its animation clip names; map them in `ANIMATIONS` in `src/config.js`. (On GitHub Pages a missing model also shows one 404 line in the network log.)
+- **CV**: put the PDF at `public/cv.pdf`. Until then the Download CV button shows a short message.
+- **Portfolio text**: fill in `src/data/cv.js` (marked `TODO (besnik)`). Empty sections show "To be added."
+
+## Deploy
+
+`.github/workflows/deploy.yml` builds the site and publishes `dist/` to GitHub Pages on every push to `main`. One-time setup: repository **Settings → Pages → Source: GitHub Actions**. `vite.config.js` uses `base: './'` so all paths work under `/3d-portfolio-room/`.
 
 ## Design decisions
 
-- **Furniture built in code from primitives**, not imported models: keeps the scene light and the geometry fully explainable; detail goes into lighting, materials and shaders instead.
+- **Furniture built in code from primitives**, not imported models: keeps the scene light and fully explainable; detail goes into lighting, materials and shaders.
 - **Metres as units**: real measurements go straight into the code, and lights and shadows behave at a realistic scale.
 - **Portfolio content as HTML over the canvas**, not 3D text: sharp and readable on a phone.
+- **Fade lights instead of adding/removing them**: changing the number of lights would recompile every shader.
 
 ## Credits and licenses
 
 | Asset | Source | License |
 | --- | --- | --- |
-| three.js | [threejs.org](https://threejs.org) | MIT |
-| Character and animations | planned: [Quaternius](https://quaternius.com) | CC0 |
+| three.js (incl. `OrbitControls`, `GLTFLoader`, `Reflector`, `RoomEnvironment`, `RoundedBoxGeometry`) | [threejs.org](https://threejs.org) | MIT |
+| Vite | [vitejs.dev](https://vitejs.dev) | MIT |
 | Walnut wood: [Wood049](https://ambientcg.com/view?id=Wood049) (colour, normal, roughness) | ambientCG | CC0 1.0 |
 | Floor tiles: [Tiles107](https://ambientcg.com/view?id=Tiles107) (colour, normal, roughness) | ambientCG | CC0 1.0 |
 | Wall plaster: [Plaster001](https://ambientcg.com/view?id=Plaster001) (normal) | ambientCG | CC0 1.0 |
 | Fabric: [Fabric062](https://ambientcg.com/view?id=Fabric062) (colour, normal) | ambientCG | CC0 1.0 |
 | Rug pattern: [Marble014](https://ambientcg.com/view?id=Marble014) (colour) | ambientCG | CC0 1.0 |
 | Headboard leather: [Leather026](https://ambientcg.com/view?id=Leather026) (normal, roughness) | ambientCG | CC0 1.0 |
+| Character and animations (to be added) | [Quaternius](https://quaternius.com) Universal Base Characters + Universal Animation Library | CC0 1.0 |
 
-Textures are the 1K JPG versions, re-encoded at JPEG quality 85 to keep the download small (1.9 MB in total).
+Textures are the 1K JPG versions, re-encoded at JPEG quality 85 to keep the download small (2.1 MB in total). Fonts are the system fonts of the device.
 
 ## AI use
 
-AI tools are used as a pair programmer, as the course expects. Details per phase are in [AI-USE.md](AI-USE.md).
+AI tools were used as a pair programmer, as the course expects. Details per phase, what I checked and one real AI mistake are in [AI-USE.md](AI-USE.md).

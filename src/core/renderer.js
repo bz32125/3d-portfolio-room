@@ -1,11 +1,12 @@
 import * as THREE from 'three';
+import { MAX_PIXEL_RATIO } from '../config.js';
 
 export function createRenderer(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 
   // Në ekranet "retina" pixelRatio mund të jetë 3, që e rëndon shumë telefonin.
-  // E kufizojmë në 2: dallimi vizual është i vogël, fitimi në performancë i madh.
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // E kufizojmë në 2 (1.5 në telefon): dallimi vizual është i vogël, fitimi i madh.
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
   renderer.setSize(window.innerWidth, window.innerHeight);
 
   // Hijet: vetëm dielli i hedh (dayCycle.js). PCFSoft = skaje të buta.

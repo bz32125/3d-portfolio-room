@@ -126,6 +126,7 @@ export class DayCycle {
     const lowSun = 1 - (elevation - DAY.minElevation * DEG) / ((DAY.maxElevation - DAY.minElevation) * DEG);
     const strength = Math.min(1, this.sunIntensity / 1.2) * (0.5 + 0.5 * lowSun);
     this.shafts.update(this.sunDirection, this.sunColor, strength);
+    this.shaftStrength = strength; // edhe pluhuri (dust.js) duket me këtë forcë
 
     // 6. Ekspozimi i ACES: natën pak më i lartë, që dhoma e ngrohtë të shihet
     this.renderer.toneMappingExposure = THREE.MathUtils.lerp(DAY.exposureDay, DAY.exposureNight, this.night);
