@@ -21,6 +21,7 @@ import { SPOTS } from './character/spots.js';
 import { Picker } from './interaction/picker.js';
 import { DayCycle } from './lighting/dayCycle.js';
 import { createTimeControls } from './ui/timeControls.js';
+import { updateCurtains, setWindowOpen } from './materials/curtainMaterial.js';
 
 // 1. Canvas, renderer, skena, kamera
 const canvas = document.querySelector('#scene');
@@ -61,6 +62,14 @@ scene.add(
 const day = new DayCycle(renderer, windowWall.getObjectByName('sky'));
 scene.add(day.group);
 const timeControls = createTimeControls(day);
+
+// Butoni "dritarja e hapur": era në shader-in e perdeve bëhet më e fortë
+const windowBtn = document.querySelector('#window-open');
+windowBtn.addEventListener('click', () => {
+  const open = windowBtn.getAttribute('aria-pressed') !== 'true';
+  windowBtn.setAttribute('aria-pressed', String(open));
+  setWindowOpen(open);
+});
 
 // 3. Karakteri dhe navigimi.
 // Pengesat: çdo mobilje që zë vend në dysheme (qilimat jo, mbi to ecet).
@@ -153,6 +162,8 @@ function tick() {
   const dt = Math.min(clock.getDelta(), 0.05);
   day.update(dt);
   timeControls.update();
+  updateCurtains(dt, day); // uTime, era dhe dielli për shader-in e perdeve
+  day.shafts.faceCamera(camera); // rrezet e diellit kthehen drejt kamerës
   character.update(dt);
   cameraTween.update(dt);
   controls.update(); // e nevojshme për damping
