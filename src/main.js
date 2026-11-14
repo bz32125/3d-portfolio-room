@@ -25,6 +25,9 @@ import { createTimeControls } from './ui/timeControls.js';
 import { updateCurtains, setWindowOpen } from './materials/curtainMaterial.js';
 import { applyAnisotropy } from './materials/textures.js';
 import { createEnvironment } from './lighting/environment.js';
+import { updateTweens } from './core/tween.js';
+import { PortfolioBook } from './portfolio/book.js';
+import { createOverlay, setupCvLinks } from './portfolio/overlay.js';
 
 // 1. Canvas, renderer, skena, kamera
 const canvas = document.querySelector('#scene');
@@ -118,10 +121,13 @@ function goTo(point, onArrive) {
 /** Shko te një vend (karrige, kolltuk, shtrat, raft) dhe kryej veprimin. */
 function doAction(name) {
   const spot = SPOTS[name];
-  if (character.spot === spot) return; // është tashmë aty
+  // Libri: kur karakteri mbërrin te rafti, hapet portfolio
+  const after = name === 'portfolio' ? () => openPortfolio() : () => {};
+  if (character.spot === spot) return after(); // është tashmë aty
   goTo(spot.approach, (c) => {
     c.placeAt(spot, spot.state);
     setStatus(spot.label);
+    after();
   });
 }
 
@@ -142,7 +148,7 @@ routineBtn.addEventListener('click', () => {
 
 // 4. Ndërveprimi: klik në dysheme = ec; klik në mobilje = shko dhe vepro.
 // Çdo klik i lojtarit e ndërpret rutinën deri te blloku tjetër i orarit.
-new Picker({
+const picker = new Picker({
   camera,
   canvas,
   floors: [room.getObjectByName('floor'), corridor.getObjectByName('floor-corridor')],
@@ -157,12 +163,42 @@ new Picker({
   },
 });
 
+// 4b. Libri i portfolios (Faza 9): animacioni 3D + faqja HTML
+const cameraTween = new CameraTween(camera, controls);
+const toast = document.querySelector('#toast');
+function showToast(text) {
+  toast.textContent = text;
+  toast.hidden = false;
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => (toast.hidden = true), 3500);
+}
+setupCvLinks(() => showToast('The CV file has not been added yet.'));
+
+const portfolio = new PortfolioBook({
+  book: bookshelves.getObjectByName('portfolio-book'),
+  camera,
+  controls,
+  cameraTween,
+  overlay: createOverlay(),
+  onClosed: () => {
+    picker.enabled = true;
+    setStatus('Idle');
+  },
+});
+
+function openPortfolio() {
+  if (portfolio.busy) return;
+  picker.enabled = false; // pa hover/klik gjatë animacionit
+  picker.clearHover(); // libri s'duhet të mbetet i theksuar (portokalli) gjatë hapjes
+  setStatus('Reading the portfolio');
+  portfolio.open();
+}
+
 // 5. Hyrja: kamera nis në korridor, prapa karakterit (si foto 01).
 // Karakteri ecën brenda në dhomë dhe kamera e ndjek me një lëvizje të butë.
 const ROOM_VIEW = { pos: V(-1.5, 2.4, 2.85), target: V(0.4, 0.6, -1.0) };
 camera.position.set(-4.95, 2.4, -2.35);
 controls.target.set(-1.5, 0.5, -2.7);
-const cameraTween = new CameraTween(camera, controls);
 const intro = !new URLSearchParams(window.location.search).has('cam');
 if (intro) {
   setStatus('Welcome in');
@@ -199,14 +235,17 @@ function tick() {
   timeControls.update();
   updateCurtains(dt, day); // uTime, era dhe dielli për shader-in e perdeve
   day.shafts.faceCamera(camera); // rrezet e diellit kthehen drejt kamerës
-  routine.update(dt);
+  if (!portfolio.busy) routine.update(dt); // rutina pret sa është hapur libri
   character.update(dt);
   cameraTween.update(dt);
+  updateTweens(dt); // animacionet e librit
   controls.update(); // e nevojshme për damping
-  renderer.render(scene, camera);
+  // Kur faqja e portfolios mbulon gjithë ekranin, skena s'shihet: s'e vizatojmë
+  // (kursen bateri në telefon). Animacioni vazhdon, vetëm vizatimi ndalet.
+  if (portfolio.state !== 'open') renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
 tick();
 
 // Vetëm në `npm run dev`: qasje nga console e browser-it për debug.
-if (import.meta.env.DEV) window.__app = { scene, camera, controls, character, nav, day, renderer, routine };
+if (import.meta.env.DEV) window.__app = { scene, camera, controls, character, nav, day, renderer, routine, picker, portfolio };

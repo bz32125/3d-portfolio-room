@@ -24,10 +24,18 @@ export class Picker {
     this.ndc = new THREE.Vector2();
     this.hovered = null;
     this.downAt = null;
+    this.enabled = true; // false gjatë animacionit të librit (Faza 9)
 
     canvas.addEventListener('pointermove', (e) => this.onMove(e));
     canvas.addEventListener('pointerdown', (e) => (this.downAt = [e.clientX, e.clientY]));
     canvas.addEventListener('pointerup', (e) => this.onUp(e));
+  }
+
+  /** Heq theksimin aktual (p.sh. kur picker-i çaktivizohet gjatë animacionit të librit). */
+  clearHover() {
+    if (this.hovered) setHighlight(this.hovered, false);
+    this.hovered = null;
+    this.canvas.style.cursor = 'default';
   }
 
   setFromEvent(e) {
@@ -47,6 +55,7 @@ export class Picker {
   }
 
   onMove(e) {
+    if (!this.enabled) return;
     this.setFromEvent(e);
     const target = this.pickInteractive();
     if (target !== this.hovered) {
@@ -58,6 +67,7 @@ export class Picker {
   }
 
   onUp(e) {
+    if (!this.enabled) return;
     // Nëse miu lëvizi shumë mes down dhe up, ishte rrotullim i kamerës, jo klik
     if (!this.downAt || Math.hypot(e.clientX - this.downAt[0], e.clientY - this.downAt[1]) > 6) return;
     this.setFromEvent(e);
