@@ -21,9 +21,11 @@ export const SPOTS = {
     label: 'Reading in the armchair',
   },
   portfolio: {
-    approach: new THREE.Vector3(-1.45, 0, -2.6),
-    position: new THREE.Vector3(-1.45, 0, -2.6),
-    rotationY: Math.PI, // shikon raftin
+    // Pranë librit (djathtas tij), jo para tij: kështu kamera e sheh librin
+    // nga afër pa e fshehur karakteri.
+    approach: new THREE.Vector3(-0.95, 0, -2.6),
+    position: new THREE.Vector3(-0.95, 0, -2.6),
+    rotationY: -2.39, // atan2(-0.375, -0.4): shikon drejt librit, diagonalisht
     state: 'atShelf',
     label: 'Opening the portfolio book',
   },

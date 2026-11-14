@@ -39,6 +39,27 @@
       <p id="status" class="status">Idle</p>
     </div>
 
+    <!-- Butoni i CV-së, gjithmonë i dukshëm në qoshe (Faza 9) -->
+    <a class="hud-cv" data-cv-link download>⬇ Download CV</a>
+
+    <!-- Mesazh i shkurtër (p.sh. kur cv.pdf s'është shtuar ende) -->
+    <p id="toast" class="toast" role="status" aria-live="polite" hidden></p>
+
+    <!-- Portfolio: libër i hapur në HTML, mbushet nga src/data/cv.js (Faza 9) -->
+    <div id="portfolio" class="portfolio" role="dialog" aria-modal="true" aria-label="Portfolio" hidden>
+      <div class="pf-book">
+        <div class="pf-tabs" role="tablist" aria-label="Chapters"></div>
+        <div class="pf-spread">
+          <section class="pf-page pf-left"></section>
+          <section class="pf-page pf-right"></section>
+        </div>
+        <div class="pf-actions">
+          <a class="pf-btn" data-cv-link download>⬇ Download CV</a>
+          <button id="pf-close" class="pf-btn pf-btn-secondary" type="button">← Back to the room</button>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

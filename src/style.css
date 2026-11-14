@@ -4,6 +4,12 @@
   box-sizing: border-box;
 }
 
+/* Atributi hidden duhet të fshehë gjithmonë, edhe kur CSS-i i jep elementit
+   display: flex (përndryshe overlay-i i padukshëm do të kapte klikimet). */
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   width: 100%;
@@ -111,6 +117,230 @@ body {
 @media (max-width: 520px) {
   .btn-text {
     display: none;
+  }
+}
+
+/* Butoni i CV-së në qoshen e sipërme djathtas */
+.hud-cv {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: #7a1f2b;
+  color: #fff6ec;
+  font: 600 14px/1 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.hud-cv:focus-visible,
+.pf-btn:focus-visible,
+.pf-tab:focus-visible {
+  outline: 2px solid #ffc56b;
+  outline-offset: 2px;
+}
+
+/* Në ekrane më të ngushta, butoni i CV-së zbret poshtë shiritit të orës */
+@media (max-width: 900px) {
+  .hud-cv {
+    top: 64px;
+  }
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 72px;
+  transform: translateX(-50%);
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: rgba(26, 23, 20, 0.9);
+  color: #f4efe6;
+  font: 14px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  z-index: 20;
+}
+
+/* ---------- Portfolio: libri i hapur ---------- */
+.portfolio {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  /* Ngjyra e faqes: kamera "zhytet" në letër, ndaj sfondi është krem */
+  background: radial-gradient(ellipse at center, #f3ead8 0%, #d9c9a8 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  font: 17px/1.6 Georgia, 'Times New Roman', serif;
+  color: #2b2118;
+}
+
+.portfolio.is-visible {
+  opacity: 1;
+}
+
+.pf-book {
+  width: min(1000px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pf-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+/* Kapitujt si shirita faqeshënuesi */
+.pf-tab {
+  min-height: 40px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 6px 6px 0 0;
+  background: #b8954a;
+  color: #2b2118;
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.pf-tab[aria-selected='true'] {
+  background: #7a1f2b;
+  color: #fff6ec;
+}
+
+/* Dy faqe me "shpinën" në mes (hije e butë) */
+.pf-spread {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 0;
+  flex: 1;
+  border-radius: 6px;
+  background: #fbf6ea;
+  box-shadow:
+    0 20px 50px rgba(60, 40, 20, 0.35),
+    inset 0 0 0 1px rgba(120, 90, 50, 0.2);
+  overflow: hidden;
+}
+
+.pf-page {
+  min-height: 320px;
+  padding: 32px 40px;
+  overflow-y: auto;
+  max-height: 70vh;
+}
+
+.pf-left {
+  background: linear-gradient(to left, rgba(120, 90, 50, 0.16), transparent 40px);
+}
+
+.pf-right {
+  background: linear-gradient(to right, rgba(120, 90, 50, 0.16), transparent 40px);
+}
+
+.pf-page h2 {
+  font-size: 34px;
+  line-height: 1.2;
+  margin: 4px 0 16px;
+  color: #5a1620;
+}
+
+.pf-page h3 {
+  font-size: 19px;
+  margin: 14px 0 4px;
+}
+
+.pf-page p,
+.pf-page ul {
+  margin: 0 0 10px;
+}
+
+.pf-page ul {
+  padding-left: 20px;
+}
+
+.pf-kicker {
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8a6b3a;
+}
+
+.pf-name {
+  font-size: 22px;
+}
+
+.pf-meta,
+.pf-empty {
+  color: #7a6a55;
+  font-style: italic;
+}
+
+.pf-page a {
+  color: #7a1f2b;
+}
+
+.pf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.pf-btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: #7a1f2b;
+  color: #fff6ec;
+  font: 600 15px/1 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pf-btn-secondary {
+  background: #2b2118;
+}
+
+/* Telefon: një kolonë, faqet njëra pas tjetrës, e gjithë faqja lëviz (scroll) */
+@media (max-width: 700px) {
+  .portfolio {
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  .pf-spread {
+    grid-template-columns: 1fr;
+    flex: none;
+  }
+
+  .pf-page {
+    min-height: 0;
+    padding: 20px;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .pf-left,
+  .pf-right {
+    background: none;
+  }
+
+  .pf-left {
+    border-bottom: 1px solid rgba(120, 90, 50, 0.25);
+  }
+
+  .pf-page h2 {
+    font-size: 28px;
   }
 }
 
