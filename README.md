@@ -105,7 +105,14 @@ docs/                 screenshots of each phase
 | --- | --- | --- |
 | three.js | [threejs.org](https://threejs.org) | MIT |
 | Character and animations | planned: [Quaternius](https://quaternius.com) | CC0 |
-| Textures | planned: [ambientCG](https://ambientcg.com), [Poly Haven](https://polyhaven.com) | CC0 |
+| Walnut wood: [Wood049](https://ambientcg.com/view?id=Wood049) (colour, normal, roughness) | ambientCG | CC0 1.0 |
+| Floor tiles: [Tiles107](https://ambientcg.com/view?id=Tiles107) (colour, normal, roughness) | ambientCG | CC0 1.0 |
+| Wall plaster: [Plaster001](https://ambientcg.com/view?id=Plaster001) (normal) | ambientCG | CC0 1.0 |
+| Fabric: [Fabric062](https://ambientcg.com/view?id=Fabric062) (colour, normal) | ambientCG | CC0 1.0 |
+| Rug pattern: [Marble014](https://ambientcg.com/view?id=Marble014) (colour) | ambientCG | CC0 1.0 |
+| Headboard leather: [Leather026](https://ambientcg.com/view?id=Leather026) (normal, roughness) | ambientCG | CC0 1.0 |
+
+Textures are the 1K JPG versions, re-encoded at JPEG quality 85 to keep the download small (1.9 MB in total).
 
 ## AI use
 

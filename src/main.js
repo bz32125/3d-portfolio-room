@@ -22,12 +22,18 @@ import { Picker } from './interaction/picker.js';
 import { DayCycle } from './lighting/dayCycle.js';
 import { createTimeControls } from './ui/timeControls.js';
 import { updateCurtains, setWindowOpen } from './materials/curtainMaterial.js';
+import { applyAnisotropy } from './materials/textures.js';
+import { createEnvironment } from './lighting/environment.js';
 
 // 1. Canvas, renderer, skena, kamera
 const canvas = document.querySelector('#scene');
 const renderer = createRenderer(canvas);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x1a1714);
+
+// Environment map për reflektimet PBR (Faza 7) dhe anisotropy për teksturat
+scene.environment = createEnvironment(renderer);
+applyAnisotropy(renderer);
 
 const camera = createCamera();
 const controls = createControls(camera, canvas);
@@ -59,7 +65,7 @@ scene.add(
 );
 
 // 2b. Drita: cikli i ditës (dielli, qielli, rrezet, dritat e natës) + slider-i i orës
-const day = new DayCycle(renderer, windowWall.getObjectByName('sky'));
+const day = new DayCycle(renderer, scene, windowWall.getObjectByName('sky'));
 scene.add(day.group);
 const timeControls = createTimeControls(day);
 

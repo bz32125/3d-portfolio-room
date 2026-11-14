@@ -1,3 +1,7 @@
+// Pajisje me prekje (telefon, tablet): aty ulim cilësinë që të mbajmë FPS-në.
+// (pointer: coarse) = gishti është pajisja kryesore, jo miu.
+export const IS_MOBILE = window.matchMedia('(pointer: coarse)').matches;
+
 // Përmasat e dhomës në metra (1 unit = 1 m).
 // Matje të përafërta nga besniku, 2026-11-06.
 export const ROOM = {
@@ -103,9 +107,9 @@ export const DAY = {
   hemiIntensity: [
     [0, 0.2],
     [5.5, 0.2],
-    [7.5, 1.1],
-    [12, 1.35],
-    [17, 1.1],
+    [7.5, 0.6],
+    [12, 0.75],
+    [17, 0.6],
     [19.5, 0.2],
     [24, 0.2],
   ],
@@ -135,8 +139,12 @@ export const DAY = {
   // Natën dritat e dhomës ndizen gradualisht (faktori "night" 0 → 1)
   nightFadeIn: [17.5, 19], // mbrëmje: nga 17:30 deri 19:00
   nightFadeOut: [5.5, 7], // mëngjes: nga 05:30 deri 07:00
-  exposureDay: 1.0,
+  exposureDay: 0.85,
   exposureNight: 1.35, // natën pak më shumë ekspozim, që dhoma të mos jetë e zezë
+  // scene.environmentIntensity: sa ndikon environment map (reflektimet + drita
+  // e butë e ambientit). Natën shumë më pak, që dhoma të mbetet e ngrohtë.
+  envDay: 0.35,
+  envNight: 0.12,
 };
 
 // Dritat e dhomës për natën: ngjyrë e ngrohtë ~2700 K (llamba "warm white").
