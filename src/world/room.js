@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ROOM, BOUNDS, CORRIDOR } from '../config.js';
+import { ROOM, BOUNDS, CORRIDOR, WINDOW } from '../config.js';
 
 // Guaska e dhomës: dyshemeja, tavani dhe 4 muret.
 // Çdo pjesë është një PlaneGeometry (sipërfaqe e sheshtë, pa trashësi).
@@ -25,6 +25,8 @@ export function createRoom() {
   ceiling.rotation.x = Math.PI / 2;
   ceiling.position.y = ROOM.height;
   ceiling.name = 'ceiling';
+  // Tavani hedh hije: përndryshe dielli i lartë (Faza 5) do të "kalonte" nëpër të.
+  ceiling.castShadow = true;
   room.add(ceiling);
 
   // Muret. Çdo mur vendoset në kufirin e vet dhe rrotullohet nga brenda dhomës.
@@ -51,7 +53,8 @@ export function createRoom() {
       pos: [BOUNDS.left, CORRIDOR.height + headerH / 2, CORRIDOR.minZ + openW / 2],
       rotY: Math.PI / 2,
     },
-    { name: 'wall-right', w: ROOM.depth, h: ROOM.height, pos: [BOUNDS.right, halfH, 0], rotY: -Math.PI / 2 },
+    // Muri i djathtë ka hapjen e dritares: 4 copa rreth saj (shih poshtë)
+    ...rightWallAroundWindow(),
   ];
 
   for (const wall of walls) {
@@ -59,9 +62,41 @@ export function createRoom() {
     mesh.position.set(...wall.pos);
     mesh.rotation.y = wall.rotY;
     mesh.receiveShadow = true;
+    // Muret hedhin hije, që dielli të hyjë VETËM nga hapja e dritares.
+    // Shënim: për materiale me një faqe, three.js e vizaton hijen me faqen e
+    // pasme (shadowSide), ndaj muri që e sheh diellin me faqen e përparme nuk
+    // e hijëzon veten (pa shadow acne), kurse muri me shpinë nga dielli e bllokon.
+    mesh.castShadow = true;
     mesh.name = wall.name;
     room.add(mesh);
   }
 
   return room;
+}
+
+/**
+ * Muri i djathtë (x = +2.5) me hapje për dritaren: 4 copa rreth saj
+ * (poshtë, sipër, para dhe pas dritares). Kështu drita e diellit kalon
+ * vetëm nga hapja dhe vizaton në dysheme formën e dritares.
+ */
+function rightWallAroundWindow() {
+  const { centerZ, width, height, bottom } = WINDOW;
+  const top = bottom + height; // 2.55 m
+  const z0 = centerZ - width / 2; // skaji i dritares nga raftet (-2.6)
+  const z1 = centerZ + width / 2; // skaji nga shtrati (+1.4)
+  const x = BOUNDS.right;
+  const rotY = -Math.PI / 2; // faqja shikon nga brenda (-X)
+  const piece = (name, zA, zB, yA, yB) => ({
+    name,
+    w: zB - zA,
+    h: yB - yA,
+    pos: [x, (yA + yB) / 2, (zA + zB) / 2],
+    rotY,
+  });
+  return [
+    piece('wall-right-back', BOUNDS.back, z0, 0, ROOM.height),
+    piece('wall-right-front', z1, BOUNDS.front, 0, ROOM.height),
+    piece('wall-right-below', z0, z1, 0, bottom),
+    piece('wall-right-above', z0, z1, top, ROOM.height),
+  ];
 }

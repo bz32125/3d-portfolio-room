@@ -15,11 +15,20 @@ export const MATERIALS = {
   plinth: new THREE.MeshStandardMaterial({ color: 0x1b1b1b, roughness: 0.8 }),
   // Pjesa e ulur e tavanit
   soffit: new THREE.MeshStandardMaterial({ color: 0xf5f2ec, roughness: 1 }),
-  // Shiriti LED: emissive = ndriçon vetë, pa varur nga dritat e skenës
+  // Shiriti LED: emissive = ndriçon vetë, pa varur nga dritat e skenës.
+  // emissiveIntensity ndryshon me orën (roomLights.js): 0 ditën, i ndezur natën.
   led: new THREE.MeshStandardMaterial({
     color: 0xfff1d6,
-    emissive: 0xffe2b0,
-    emissiveIntensity: 2.5,
+    emissive: 0xffc27a,
+    emissiveIntensity: 0,
+  }),
+  // Abazhuri i llambave të natës: pëlhurë e çelët që "ndizet" natën
+  lampShade: new THREE.MeshStandardMaterial({
+    color: 0xf1e6d2,
+    emissive: 0xffb06a,
+    emissiveIntensity: 0,
+    roughness: 0.9,
+    side: THREE.DoubleSide, // abazhuri është tub i hapur: shihet edhe nga brenda
   }),
   // Pajisjet elektronike
   blackGloss: new THREE.MeshStandardMaterial({ color: 0x0c0c0e, roughness: 0.25, metalness: 0.2 }),
@@ -48,8 +57,6 @@ export const MATERIALS = {
     transparent: true,
     opacity: 0.75,
   }),
-  // Qielli prapa dritares (përkohësisht emissive; Faza 5 e kthen në shader)
-  sky: new THREE.MeshBasicMaterial({ color: 0xcfe3f5 }),
   windowFrame: new THREE.MeshStandardMaterial({ color: 0xeeeeea, roughness: 0.6 }),
   // Gardëroba me xham të errët
   darkGlass: new THREE.MeshStandardMaterial({ color: 0x15171a, roughness: 0.08, metalness: 0.3 }),
