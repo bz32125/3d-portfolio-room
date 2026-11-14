@@ -1,3 +1,5 @@
+import { MAX_PIXEL_RATIO } from '../config.js';
+
 // fov i Three.js është vertikal. Në një telefon vertikal (ekran i ngushtë)
 // kjo do të thotë që horizontalisht shihet shumë pak nga dhoma,
 // ndaj e zmadhojmë fov-in kur ekrani është më i lartë se i gjerë.
@@ -18,6 +20,6 @@ export function handleResize(camera, renderer) {
     camera.updateProjectionMatrix(); // rillogarit matricën e projeksionit
 
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
   });
 }

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { fitFov } from './resize.js';
+import { ROOM, BOUNDS } from '../config.js';
 
 export function createCamera() {
   // PerspectiveCamera(fov, aspect, near, far)
@@ -37,8 +38,34 @@ export function createControls(camera, canvas) {
   controls.minDistance = 1.0;
   controls.maxDistance = 6.5;
   controls.maxPolarAngle = Math.PI * 0.55; // pak poshtë horizontit, jo nën dysheme
-  controls.enablePan = false; // pa zhvendosje anash në Fazën 1
+  controls.enablePan = false; // pa zhvendosje anash: kamera rrotullohet rreth karakterit/dhomës
 
   controls.update();
   return controls;
+}
+
+// Kamera s'del kurrë jashtë mureve (Faza 10). OrbitControls kufizon vetëm
+// distancën dhe këndin, jo pozicionin, ndaj pas controls.update() e "shtrëngojmë"
+// pozicionin brenda kutisë së dhomës, 15 cm larg mureve, dyshemesë dhe tavanit.
+// Në kuadrin tjetër OrbitControls nis nga ky pozicion i korrigjuar.
+const MARGIN = 0.15;
+export function keepInsideRoom(camera) {
+  const p = camera.position;
+  p.x = THREE.MathUtils.clamp(p.x, BOUNDS.left + MARGIN, BOUNDS.right - MARGIN);
+  p.y = THREE.MathUtils.clamp(p.y, 0.3, ROOM.height - MARGIN);
+  p.z = THREE.MathUtils.clamp(p.z, BOUNDS.back + MARGIN, BOUNDS.front - MARGIN);
+}
+
+/**
+ * "Follow": target-i i kamerës ndjek karakterin butësisht. Kamera zhvendoset
+ * me të njëjtin vektor si target-i, pra pamja (këndi, distanca) mbetet e njëjtë.
+ * 1 - e^(-k·dt): easing eksponencial, i njëjtë në çdo FPS.
+ */
+const goal = new THREE.Vector3();
+const step = new THREE.Vector3();
+export function followPoint(camera, controls, point, dt) {
+  goal.set(point.x, point.y + 0.9, point.z); // rreth lartësisë së gjoksit
+  step.subVectors(goal, controls.target).multiplyScalar(1 - Math.exp(-3 * dt));
+  controls.target.add(step);
+  camera.position.add(step);
 }

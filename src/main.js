@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import './style.css';
 
 import { createRenderer } from './core/renderer.js';
-import { createCamera, createControls } from './core/camera.js';
+import { createCamera, createControls, keepInsideRoom, followPoint } from './core/camera.js';
 import { handleResize } from './core/resize.js';
 import { createRoom } from './world/room.js';
 import { createSoffit } from './world/soffit.js';
@@ -23,11 +23,16 @@ import { Picker } from './interaction/picker.js';
 import { DayCycle } from './lighting/dayCycle.js';
 import { createTimeControls } from './ui/timeControls.js';
 import { updateCurtains, setWindowOpen } from './materials/curtainMaterial.js';
-import { applyAnisotropy } from './materials/textures.js';
+import { applyAnisotropy, loadingManager } from './materials/textures.js';
 import { createEnvironment } from './lighting/environment.js';
 import { updateTweens } from './core/tween.js';
 import { PortfolioBook } from './portfolio/book.js';
 import { createOverlay, setupCvLinks } from './portfolio/overlay.js';
+import { createLoader } from './ui/loader.js';
+import { createHelp } from './ui/help.js';
+import { createDevStats } from './ui/devStats.js';
+import { createMonitorScreen } from './world/monitorScreen.js';
+import { createDust } from './lighting/dust.js';
 
 // 1. Canvas, renderer, skena, kamera
 const canvas = document.querySelector('#scene');
@@ -45,7 +50,8 @@ const controls = createControls(camera, canvas);
 // 2. Bota: dhoma, mobiljet dhe dritat
 const room = createRoom();
 const bookshelves = createBookshelves();
-const desk = createDesk();
+const monitorScreen = createMonitorScreen(); // ekrani me kod që lëviz (CanvasTexture)
+const desk = createDesk(monitorScreen.material);
 const chair = createChair();
 const lounge = createLounge();
 const windowWall = createWindowWall();
@@ -71,6 +77,8 @@ scene.add(
 // 2b. Drita: cikli i ditës (dielli, qielli, rrezet, dritat e natës) + slider-i i orës
 const day = new DayCycle(renderer, scene, windowWall.getObjectByName('sky'));
 scene.add(day.group);
+const dust = createDust(); // pluhur në rrezet e diellit (Points)
+scene.add(dust.points);
 const timeControls = createTimeControls(day);
 
 // Butoni "dritarja e hapur": era në shader-in e perdeve bëhet më e fortë
@@ -194,18 +202,50 @@ function openPortfolio() {
   portfolio.open();
 }
 
+// 4c. Kamera: "Follow" (ndjek karakterin) dhe kufiri brenda dhomës
+let follow = false;
+const followBtn = document.querySelector('#follow');
+followBtn.addEventListener('click', () => {
+  follow = !follow;
+  followBtn.setAttribute('aria-pressed', String(follow));
+});
+let insideRoom = false; // pas hyrjes kamera s'del më jashtë mureve
+
+// Ndihma në ekran (H / ?) dhe FPS vetëm në zhvillim
+const help = createHelp();
+const devStats = createDevStats(renderer);
+
 // 5. Hyrja: kamera nis në korridor, prapa karakterit (si foto 01).
-// Karakteri ecën brenda në dhomë dhe kamera e ndjek me një lëvizje të butë.
+// Pas "Enter" në ekranin e titullit, karakteri ecën brenda dhe kamera e ndjek butë.
 const ROOM_VIEW = { pos: V(-1.5, 2.4, 2.85), target: V(0.4, 0.6, -1.0) };
 camera.position.set(-4.95, 2.4, -2.35);
 controls.target.set(-1.5, 0.5, -2.7);
 const intro = !new URLSearchParams(window.location.search).has('cam');
-if (intro) {
+
+function startIntro() {
   setStatus('Welcome in');
-  setTimeout(() => {
-    goTo(V(-1.0, 0, -1.4), () => setStatus('Idle'));
-    cameraTween.to(ROOM_VIEW.pos, ROOM_VIEW.target, 3.5);
-  }, 600);
+  goTo(V(-1.0, 0, -1.4), () => {
+    setStatus('Idle');
+    showHelpOnce();
+  });
+  cameraTween.to(ROOM_VIEW.pos, ROOM_VIEW.target, 3.5).then(() => (insideRoom = true));
+}
+
+/** Ndihma hapet vetë vetëm herën e parë (localStorage mund të mos punojë: try/catch). */
+function showHelpOnce() {
+  try {
+    if (localStorage.getItem('cozy-room-help-seen')) return;
+    localStorage.setItem('cozy-room-help-seen', '1');
+  } catch {
+    // pa localStorage (p.sh. dritare private): thjesht e tregojmë
+  }
+  help.setOpen(true);
+}
+
+const loader = createLoader(loadingManager, startIntro);
+if (!intro) {
+  loader.skip(); // ?cam= (zhvillim): pa ekran titulli, pa hyrje
+  insideRoom = true;
 }
 
 // Vetëm për zhvillim: ?cam=x,y,z&target=x,y,z në URL vendos kamerën,
@@ -235,14 +275,20 @@ function tick() {
   timeControls.update();
   updateCurtains(dt, day); // uTime, era dhe dielli për shader-in e perdeve
   day.shafts.faceCamera(camera); // rrezet e diellit kthehen drejt kamerës
+  dust.update(dt, day.sunColor, day.shaftStrength);
+  monitorScreen.update(dt);
   if (!portfolio.busy) routine.update(dt); // rutina pret sa është hapur libri
   character.update(dt);
   cameraTween.update(dt);
   updateTweens(dt); // animacionet e librit
+  // Follow: vetëm kur s'po lëviz kamera vetë (hyrja, libri)
+  if (follow && !cameraTween.active && !portfolio.busy) followPoint(camera, controls, character.root.position, dt);
   controls.update(); // e nevojshme për damping
+  if (insideRoom && !portfolio.busy) keepInsideRoom(camera);
   // Kur faqja e portfolios mbulon gjithë ekranin, skena s'shihet: s'e vizatojmë
   // (kursen bateri në telefon). Animacioni vazhdon, vetëm vizatimi ndalet.
   if (portfolio.state !== 'open') renderer.render(scene, camera);
+  devStats.update();
   requestAnimationFrame(tick);
 }
 tick();
