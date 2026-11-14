@@ -52,7 +52,7 @@ body {
   top: 12px;
   left: 50%;
   transform: translateX(-50%);
-  width: min(460px, calc(100% - 32px));
+  width: min(560px, calc(100% - 32px));
   display: flex;
   align-items: center;
   gap: 10px;
@@ -79,7 +79,8 @@ body {
 }
 
 #time-auto,
-#window-open {
+#window-open,
+#routine {
   flex: none;
   min-height: 32px;
   padding: 0 12px;
@@ -92,16 +93,25 @@ body {
 }
 
 #time-auto[aria-pressed='true'],
-#window-open[aria-pressed='true'] {
+#window-open[aria-pressed='true'],
+#routine[aria-pressed='true'] {
   background: #ffc56b;
   color: #1a1714;
 }
 
 #time-auto:focus-visible,
 #window-open:focus-visible,
+#routine:focus-visible,
 #time:focus-visible {
   outline: 2px solid #ffc56b;
   outline-offset: 2px;
+}
+
+/* Në ekrane të ngushta butonat tregojnë vetëm ikonën */
+@media (max-width: 520px) {
+  .btn-text {
+    display: none;
+  }
 }
 
 /* Tekst vetëm për lexuesit e ekranit (accessibility) */

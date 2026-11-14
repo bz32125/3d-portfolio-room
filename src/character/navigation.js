@@ -4,7 +4,9 @@ import { NAV_AREAS } from '../config.js';
 // Navigimi: dyshemeja ndahet në një rrjetë qelizash 10 × 10 cm.
 // Rrjeta mbulon dhomën dhe korridorin (NAV_AREAS). Një qelizë është e lirë
 // vetëm nëse karakteri (rrethi me rreze `radius`) futet plotësisht në një zonë
-// dhe nuk prek asnjë mobilje. Rruga gjendet me A* dhe thjeshtohet në vija të drejta.
+// dhe nuk prek asnjë mobilje. Rruga gjendet me A*, thjeshtohet në vija të drejta
+// dhe pastaj zbutet me një kurbë Catmull-Rom (kapitulli i kurbave), që karakteri
+// të ecë në harqe të buta, jo në zig-zag.
 
 const CELL = 0.1;
 // Drejtkëndëshi që përmban të gjitha zonat
@@ -126,7 +128,24 @@ export class NavGrid {
     for (let k = endKey; k !== -1; k = came[k]) cells.push(cellCenter(k % COLS, Math.floor(k / COLS)));
     cells.reverse();
     cells[cells.length - 1] = goal;
-    return this.simplify([from.clone().setY(0), ...cells]);
+    return this.smooth(this.simplify([from.clone().setY(0), ...cells]));
+  }
+
+  /**
+   * CatmullRomCurve3 kalon nëpër të gjitha pikat e rrugës, me tangjente të buta
+   * në kthesa. 'centripetal' është varianti që s'bën laqe as s'del shumë jashtë
+   * kur pikat janë në distanca shumë të ndryshme. Pastaj marrim pika çdo 10 cm
+   * (getSpacedPoints) që karakteri i ndjek njëra pas tjetrës.
+   * Nëse kurba prek një pengesë (del jashtë rrugës së lirë), mbajmë vijat e drejta.
+   */
+  smooth(points) {
+    if (points.length < 3) return points; // vijë e drejtë: s'ka ç'të zbutet
+    const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal');
+    const samples = curve.getSpacedPoints(Math.max(2, Math.ceil(curve.getLength() / CELL)));
+    // Pika e parë dhe e fundit mund të jenë brenda një pengese (p.sh. karakteri
+    // ngrihet nga karrigia), ndaj kontrollojmë vetëm pikat e ndërmjetme.
+    const inner = samples.slice(1, -1);
+    return inner.every((p) => this.isFree(p.x, p.z)) ? samples : points;
   }
 
   /** Heq pikat e panevojshme: nëse A shihet drejt nga C, B nuk duhet. */
